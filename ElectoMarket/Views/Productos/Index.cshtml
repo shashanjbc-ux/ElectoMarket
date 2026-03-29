@@ -1,0 +1,318 @@
+@model IEnumerable<ElectoMarket.Models.Producto>
+@using Microsoft.AspNetCore.Http
+
+@{
+    Layout = null; 
+    var uId = Context.Session.GetInt32("UsuarioId");
+    var uNombre = Context.Session.GetString("UsuarioNombre") ?? "Invitado";
+    var uFoto = Context.Session.GetString("UsuarioFoto");
+    
+    var miRol = Context.Session.GetInt32("UsuarioRol");
+    bool esAdmin = miRol == 1; 
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tienda - ElectroMarket</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-main: #0f0f10;
+            --bg-nav: #161618;
+            --bg-card: #1c1c1f;
+            --border-color: #2d2d30;
+            --text-main: #ffffff;
+            --text-muted: #a1a1aa;
+            --morado: #7c4dff;
+            --morado-glow: rgba(124, 77, 255, 0.2);
+            --cyan-neon: #00d2ff;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .hover-white:hover { color: white !important; transition: 0.2s; }
+        
+        .profile-link { padding: 5px 10px; border-radius: 12px; transition: 0.3s; text-decoration: none !important; }
+        .profile-link:hover { background: rgba(255, 255, 255, 0.05); transform: translateY(-2px); }
+        .profile-link:hover img { border-color: var(--cyan-neon) !important; box-shadow: 0 0 10px var(--cyan-neon); }
+
+        .navbar-main {
+            background-color: rgba(10, 10, 12, 0.9);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 0;
+        }
+
+        /* --- BOTONES PREMIUM --- */
+        .btn-outline-cyan {
+            border: 1px solid var(--cyan-neon);
+            color: var(--cyan-neon);
+            background: transparent;
+            transition: 0.3s;
+        }
+        .btn-outline-cyan:hover { background: var(--cyan-neon); color: black; box-shadow: 0 0 15px rgba(0, 210, 255, 0.4); }
+
+        .btn-morado {
+            background-color: var(--morado);
+            color: white;
+            border: none;
+            transition: 0.3s;
+        }
+        .btn-morado:hover { background-color: #6236ff; box-shadow: 0 0 15px var(--morado-glow); transform: scale(1.05); }
+
+        /* --- PANEL DE BÚSQUEDA --- */
+        .search-panel { background-color: var(--bg-nav); border: 1px solid var(--border-color); border-radius: 15px; padding: 25px; }
+        .form-control-dark { background-color: var(--bg-main); border: 1px solid var(--border-color); color: white; padding: 10px 15px; }
+        .form-control-dark:focus { border-color: var(--morado); box-shadow: 0 0 10px var(--morado-glow); outline: none; }
+        .form-select option { background-color: #ffffff; color: #000000; font-weight: 500; }
+        
+        /* optgroup styling para selects */
+        optgroup { color: #888; font-weight: 800; font-size: 0.85rem; }
+
+        /* --- CARDS DE PRODUCTO --- */
+        .product-card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 15px; overflow: hidden; transition: 0.3s; height: 100%; }
+        .product-card:hover { transform: translateY(-5px); border-color: var(--morado); }
+        .card-img-container { position: relative; height: 200px; }
+        .product-img { width: 100%; height: 100%; object-fit: cover; padding: 10px; border-radius: 20px; }
+        .price-tag { position: absolute; top: 15px; right: 15px; background-color: var(--morado); color: white; padding: 4px 12px; border-radius: 8px; font-weight: 700; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+
+        /* 🟢 ESTILO ADICIONAL PARA LA ALERTA 🟢 */
+        .border-tech-alert {
+            border: 2px solid var(--morado) !important;
+            box-shadow: 0 0 20px rgba(124, 77, 255, 0.4) !important;
+            border-radius: 20px !important;
+        }
+    </style>
+</head>
+<body>
+
+    @* NAVBAR PREMIUM *@
+    <nav class="navbar-main sticky-top shadow-sm z-3">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <a asp-controller="Home" asp-action="Index" class="d-flex align-items-center text-decoration-none">
+                    <img src="/imagenes/Logo/Logo.jpg" alt="Logo" class="me-2" style="height: 40px; width: 40px; border-radius: 50%;">
+                    <span class="text-white fw-bold fs-5">ElectroMarket</span>
+                </a>
+                
+                <div class="ms-5 d-flex gap-4">
+                    <a asp-controller="Productos" asp-action="Index" class="text-white text-decoration-none small fw-bold hover-white"><i class="bi bi-shop me-1"></i> Catálogo</a>
+                    <a asp-controller="Comparacion" asp-action="Index" class="text-white-50 text-decoration-none small fw-bold hover-white"><i class="bi bi-arrow-left-right me-1"></i> Versus Tech</a>
+                    
+                    @if (esAdmin) { 
+                        <a asp-controller="Home" asp-action="Index" class="text-white-50 text-decoration-none small fw-bold hover-white"><i class="bi bi-shield-lock me-1"></i> Inicio</a>
+                        <a asp-controller="Usuarios" asp-action="ListadoUsuarios" class="text-white-50 text-decoration-none small fw-bold hover-white"><i class="bi bi-people me-1"></i> Usuarios</a>
+                        <a asp-controller="Productos" asp-action="Gestionar" class="text-white-50 text-decoration-none small fw-bold hover-white"><i class="bi bi-box-seam me-1"></i> Productos</a>
+                    }
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-4">
+                @if (uId != null) {
+                    <a asp-controller="Chats" asp-action="Index" class="text-white opacity-75 fs-5 hover-white" title="Mensajes">
+                        <i class="bi bi-chat-dots"></i>
+                    </a>
+                    
+                    @* 🔗 ENLACE AL PERFIL *@
+                    <a asp-controller="Usuarios" asp-action="Perfil" class="d-flex align-items-center text-decoration-none profile-link">
+                        <img src="@(!string.IsNullOrEmpty(uFoto) ? uFoto : "/imagenes/placeholder-perfil.png")" 
+                             class="rounded-circle border border-secondary me-2" 
+                             style="width: 38px; height: 38px; object-fit: cover; transition: 0.3s;">
+                        
+                        <div class="text-start">
+                            <div class="small text-white-50 lh-1">Hola,</div>
+                            <div class="text-white fw-bold lh-1">@uNombre</div>
+                            @if(esAdmin){
+                                <span class="badge bg-warning text-dark fw-bold mt-1" style="font-size: 0.6rem; padding: 2px 6px;">
+                                    <i class="bi bi-shield-fill"></i> ADMIN
+                                </span>
+                            }
+                        </div>
+                    </a>
+
+                    <form asp-controller="Usuarios" asp-action="Logout" method="post" class="m-0 ms-2">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">Salir</button>
+                    </form>
+                } else {
+                    <a asp-controller="Usuarios" asp-action="Login" class="text-white-50 text-decoration-none small fw-bold hover-white me-3">Ingresar</a>
+                    <a asp-controller="Usuarios" asp-action="Register" class="btn btn-outline-primary btn-sm rounded-pill px-3">Registrarse</a>
+                }
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        
+        @* PANEL DE BÚSQUEDA AVANZADA PREMIUM *@
+        <div class="search-panel mb-5 shadow-lg" style="position: relative; overflow: hidden;">
+            @* Brillo de fondo sutil *@
+            <div style="position: absolute; top: -50px; left: -50px; width: 150px; height: 150px; background: var(--morado); filter: blur(100px); opacity: 0.15; z-index: 0;"></div>
+            
+            <h5 class="mb-4 d-flex align-items-center fw-bold text-white position-relative z-1">
+                <i class="bi bi-sliders2 me-2" style="color: var(--cyan-neon);"></i> Filtros de Búsqueda Avanzados
+            </h5>
+            
+            <form asp-action="Index" method="get" class="position-relative z-1">
+                <div class="row g-4">
+                    @* --- FILA 1 --- *@
+                    <div class="col-md-6 col-lg-4">
+                        <label class="small text-white-50 mb-1 fw-bold"><i class="bi bi-search me-1"></i>Buscar por nombre</label>
+                        <input type="text" name="buscar" value="@ViewBag.BuscarActual" class="form-control form-control-dark rounded-3" placeholder="Ej: Laptop, PlayStation, iPhone...">
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4">
+                        <label class="small text-white-50 mb-1 fw-bold"><i class="bi bi-grid-fill me-1"></i>Categoría</label>
+                        <select name="categoria" class="form-select form-control-dark rounded-3">
+                            <option value="">Todas las categorías</option>
+                            <optgroup label="🎮 Tecnología y Gaming">
+                                <option value="Smartphone" selected="@(ViewBag.CategoriaActual == "Smartphone")">Smartphones</option>
+                                <option value="Laptop" selected="@(ViewBag.CategoriaActual == "Laptop")">Laptops y PCs</option>
+                                <option value="Consola" selected="@(ViewBag.CategoriaActual == "Consola")">Consolas de Videojuegos</option>
+                                <option value="Televisor" selected="@(ViewBag.CategoriaActual == "Televisor")">Televisores y Smart TV</option>
+                                <option value="Audio" selected="@(ViewBag.CategoriaActual == "Audio")">Equipos de Audio y Audífonos</option>
+                            </optgroup>
+                            <optgroup label="🏠 Electrodomésticos">
+                                <option value="Lavadora" selected="@(ViewBag.CategoriaActual == "Lavadora")">Lavadoras</option>
+                                <option value="Refrigerador" selected="@(ViewBag.CategoriaActual == "Refrigerador")">Refrigeradores</option>
+                                <option value="Microondas" selected="@(ViewBag.CategoriaActual == "Microondas")">Microondas</option>
+                                <option value="Climatizacion" selected="@(ViewBag.CategoriaActual == "Climatizacion")">Aire Acondicionado y Ventiladores</option>
+                            </optgroup>
+                            <option value="Otro" selected="@(ViewBag.CategoriaActual == "Otro")">Otros / Accesorios</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-12 col-lg-4">
+                        <label class="small text-white-50 mb-1 fw-bold"><i class="bi bi-person-badge me-1"></i>Vendedor</label>
+                        <input type="text" name="vendedor" value="@ViewBag.VendedorActual" class="form-control form-control-dark rounded-3" placeholder="Buscar por nombre del vendedor...">
+                    </div>
+
+                    @* --- FILA 2 --- *@
+                    <div class="col-6 col-lg-2">
+                        <label class="small text-white-50 mb-1 fw-bold"><i class="bi bi-currency-dollar me-1"></i>Precio Mín.</label>
+                        <input type="number" name="precioMinimo" value="@ViewBag.PrecioMinimoActual" class="form-control form-control-dark rounded-3" placeholder="$ 0">
+                    </div>
+                    
+                    <div class="col-6 col-lg-2">
+                        <label class="small text-white-50 mb-1 fw-bold">Precio Máx.</label>
+                        <input type="number" name="precioMaximo" value="@ViewBag.PrecioMaximoActual" class="form-control form-control-dark rounded-3" placeholder="$ Sin límite">
+                    </div>
+
+                    <div class="col-md-6 col-lg-4">
+                        <label class="small text-white-50 mb-1 fw-bold"><i class="bi bi-sort-down me-1"></i>Ordenar resultados por</label>
+                        <select name="ordenarPor" class="form-select form-control-dark rounded-3">
+                            <option value="" selected="@(string.IsNullOrEmpty(ViewBag.OrdenActual))">Más recientes (Por defecto)</option>
+                            <option value="precio_asc" selected="@(ViewBag.OrdenActual == "precio_asc")">Precio: Menor a Mayor</option>
+                            <option value="precio_desc" selected="@(ViewBag.OrdenActual == "precio_desc")">Precio: Mayor a Menor</option>
+                            <option value="az" selected="@(ViewBag.OrdenActual == "az")">Nombre: A - Z</option>
+                            <option value="za" selected="@(ViewBag.OrdenActual == "za")">Nombre: Z - A</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6 col-lg-4 d-flex align-items-end gap-2 mt-4 mt-lg-0">
+                        <button type="submit" class="btn w-100 text-white fw-bold rounded-3" style="background-color: var(--morado); box-shadow: 0 5px 15px var(--morado-glow); transition: 0.3s;">
+                            <i class="bi bi-funnel-fill me-1"></i> Aplicar Filtros
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary px-3 fw-bold rounded-3" title="Restablecer filtros" style="transition: 0.3s;">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        @* LISTADO DE PRODUCTOS *@
+        <div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
+            @if (Model != null && Model.Any()) {
+                @foreach (var item in Model) {
+                    <div class="col">
+                        <div class="product-card shadow-lg">
+                            <div class="card-img-container">
+                                <img src="@(string.IsNullOrEmpty(item.ImagenUrl) ? "/imagenes/no-image.png" : item.ImagenUrl)" class="product-img" alt="@item.Nombre">
+                                <span class="price-tag">@item.Precio.ToString("C0")</span>
+                            </div>
+                            <div class="card-body pb-0">
+                                <h5 class="fw-bold mb-1 text-white">@item.Nombre</h5>
+                                
+                                @* 🟢 Descripción corregida a text-white-50 🟢 *@
+                                <p class="small text-white-50 text-truncate mb-3">@item.Descripcion</p>
+                                
+                                <div class="d-flex justify-content-between align-items-center pt-2" style="border-top: 1px solid var(--border-color);">
+                                    <a asp-controller="Usuarios" asp-action="VerPerfil" asp-route-id="@item.IdUsuario" class="d-flex align-items-center profile-link">
+                                        <i class="bi bi-person-circle me-1 text-primary"></i>
+                                        <span class="small fw-bold text-white">@(item.Usuario?.Nombre ?? "Vendedor")</span>
+                                    </a>
+                                    
+                                    @* 🟢 Fecha corregida a text-white-50 🟢 *@
+                                    <span class="small text-white-50">@item.FechaPublicacion.ToString("dd/MM/yy")</span>
+                                </div>
+                            </div>
+
+                            <div class="card-footer-actions d-flex gap-2 p-3 mt-2">
+                                <a asp-action="Details" asp-route-id="@item.IdProducto" class="btn btn-sm btn-outline-cyan w-100 fw-bold">Ver</a>
+
+                                @* BOTÓN DE COMPARACIÓN CON ALERTA *@
+                                <button type="button" 
+                                        onclick="confirmarComparacion(@item.IdProducto, '@item.Nombre')" 
+                                        class="btn btn-sm btn-morado px-3" 
+                                        title="Añadir a Comparación">
+                                    <i class="bi bi-arrow-left-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            } else {
+                <div class="col-12 text-center py-5">
+                    @* 🟢 Mensaje vacío corregido a text-white-50 🟢 *@
+                    <h3 class="text-white-50"><i class="bi bi-search me-2"></i> No se encontraron productos con esos filtros.</h3>
+                </div>
+            }
+        </div>
+    </div>
+
+    @* --- SCRIPTS --- *@
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    @* CDN de SweetAlert2 *@
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        function confirmarComparacion(id, nombre) {
+            Swal.fire({
+                title: '<span style="color: #00d2ff; font-weight: 800;">¡EQUIPO SELECCIONADO!</span>',
+                html: `<b style="color: #eee; font-size: 1.1rem;">${nombre}</b><br><span style="color: #aaa; font-size: 0.9rem;">ha sido enviado al laboratorio Versus Tech.</span>`,
+                icon: 'success',
+                background: '#161618',
+                color: '#fff',
+                showCancelButton: true,
+                confirmButtonColor: '#7c4dff',
+                cancelButtonColor: '#2d2d30',
+                confirmButtonText: '<i class="bi bi-arrow-left-right me-2"></i>Ir a Comparar',
+                cancelButtonText: 'Seguir navegando',
+                backdrop: `rgba(124, 77, 255, 0.1)`,
+                customClass: {
+                    popup: 'border-tech-alert'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Redirige agregando y saltando a Versus
+                    window.location.href = `/Productos/AgregarAComparacion?id=${id}&irAVersus=true`;
+                } else if (result.dismiss === Swal.DismissReason.cancel) {
+                    // Solo agrega y se queda en el catálogo
+                    window.location.href = `/Productos/AgregarAComparacion?id=${id}`;
+                }
+            });
+        }
+    </script>
+</body>
+</html>

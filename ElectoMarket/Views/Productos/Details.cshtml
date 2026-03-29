@@ -1,0 +1,234 @@
+@model ElectoMarket.Models.Producto
+@using System.Linq
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    Layout = null;    
+    
+    // 1. Datos de Sesión    
+    var uId = Context.Session.GetInt32("UsuarioId");
+    var uNombre = Context.Session.GetString("UsuarioNombre") ?? "Usuario";
+    var uFoto = Context.Session.GetString("UsuarioFoto");
+    var miRol = Context.Session.GetInt32("UsuarioRol");
+    bool esAdmin = (miRol == 1);
+    bool esMiProducto = (Model != null && uId == Model.IdUsuario);    
+    
+    // 2. Lógica de WhatsApp (Calculada aquí arriba para evitar errores de sintaxis abajo)    
+    bool tieneTelefono = (Model?.Usuario != null && !string.IsNullOrEmpty(Model.Usuario.Telefono));
+    string whatsappUrl = "";
+    string msj = "";
+    string colClass = tieneTelefono ? "col-sm-6" : "col-12";
+
+    if (tieneTelefono)
+    {        
+        // Limpiamos el número y preparamos el mensaje        
+        var telLimpio = new string(Model.Usuario.Telefono.Where(char.IsDigit).ToArray());
+        whatsappUrl = telLimpio.StartsWith("57") ? telLimpio : "57" + telLimpio;
+        msj = Uri.EscapeDataString($"¡Hola! Vi tu producto '{Model?.Nombre}' en ElectroMarket y estoy interesado.");
+    }
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@Model?.Nombre - ElectroMarket</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-main: #060608;
+            --bg-card: rgba(15, 15, 20, 0.9);
+            --morado: #7c4dff;
+            --cyan-neon: #00d2ff;
+            --verde-neon: #00ff88;
+            --border-glow: rgba(0, 210, 255, 0.3);
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: #ffffff;
+            font-family: 'Inter', system-ui, sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            background-image: radial-gradient(circle at 15% 15%, rgba(124, 77, 255, 0.08) 0%, transparent 40%), radial-gradient(circle at 85% 85%, rgba(0, 210, 255, 0.08) 0%, transparent 40%);
+        }
+
+        /* 🟢 DOBLE @@ PARA EVITAR ERROR CS0103 🟢 */
+        @@keyframes glowPulse {
+            0% { box-shadow: 0 0 5px var(--border-glow); }
+            50% { box-shadow: 0 0 20px var(--border-glow); }
+            100% { box-shadow: 0 0 5px var(--border-glow); }
+        }
+
+        .navbar-main {
+            background: rgba(10, 10, 12, 0.95);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-profile-img {
+            width: 38px;
+            height: 38px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 2px solid var(--cyan-neon);
+            transition: 0.3s;
+        }
+
+            .nav-profile-img:hover {
+                transform: scale(1.1);
+                box-shadow: 0 0 10px var(--cyan-neon);
+            }
+
+        .btn-logout {
+            background: rgba(255, 50, 50, 0.1);
+            color: #ff5555;
+            border: 1px solid rgba(255, 50, 50, 0.3);
+            border-radius: 20px;
+            padding: 5px 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .product-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px;
+            margin: 40px auto;
+            max-width: 1100px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            animation: glowPulse 4s infinite ease-in-out;
+        }
+
+        .desc-box {
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 3px solid var(--cyan-neon);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 25px 0;
+        }
+
+        /* 🟢 TEXTO BLANCO PARA MÁXIMA VISIBILIDAD 🟢 */
+        .text-desc {
+            color: #ffffff !important;
+            font-weight: 400;
+        }
+
+        .btn-main {
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 700;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+            border: none;
+        }
+
+        .btn-chat {
+            background: linear-gradient(135deg, var(--morado), var(--cyan-neon));
+            color: white;
+        }
+
+        .btn-wa {
+            background: linear-gradient(135deg, #128C7E, #25D366);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar-main">
+        <div class="container d-flex justify-content-between align-items-center">
+            <a asp-controller="Home" asp-action="Index" class="text-white fw-bold text-decoration-none fs-4">
+                <i class="bi bi-cpu-fill text-cyan-neon me-2"></i>ElectroMarket
+            </a>
+            @if (uId != null)
+            {
+                <div class="d-flex align-items-center gap-3">
+                    <span class="text-white-50 d-none d-sm-inline">Hola, <strong class="text-white">@uNombre</strong></span>
+                    <a asp-controller="Usuarios" asp-action="Perfil"><img src="@(!string.IsNullOrEmpty(uFoto) ? uFoto : "/imagenes/placeholder-perfil.png")" class="nav-profile-img"></a>
+                    <form asp-controller="Usuarios" asp-action="Logout" method="post" class="m-0"><button type="submit" class="btn-logout">Salir</button></form>
+                </div>
+            }
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="product-card">
+            <div class="row g-5">
+                <div class="col-lg-6 text-center">
+                    <img src="@Model?.ImagenUrl" class="img-fluid rounded-4 shadow-lg border border-white border-opacity-10" style="min-height: 400px; object-fit: cover;">
+                </div>
+                <div class="col-lg-6 d-flex flex-column">
+                    <h1 class="fw-bold">@Model?.Nombre</h1>
+                    <div class="text-success fs-2 fw-bold mb-4">$@Model?.Precio.ToString("N0")</div>
+
+                    <div class="mb-4 mt-3">
+                        @if (Model != null && Model.RequiereReparacion)
+                        {
+                            <div class="d-inline-block p-2 px-3 rounded-3 shadow-sm" style="background: rgba(255, 193, 7, 0.1); border: 1px solid #ffc107; color: #ffc107; font-weight: 600;">
+                                <i class="bi bi-tools me-2"></i> ¡Ojo! Este equipo requiere reparación o tiene detalles
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="d-inline-block p-2 px-3 rounded-3 shadow-sm" style="background: rgba(32, 201, 151, 0.1); border: 1px solid #20c997; color: #20c997; font-weight: 600;">
+                                <i class="bi bi-check-circle-fill me-2"></i> Equipo 100% Funcional
+                            </div>
+                        }
+                    </div>
+
+                    <div class="desc-box">
+                        <h6 class="text-cyan-neon small fw-bold text-uppercase mb-2">Descripción</h6>
+                        <p class="m-0 text-desc">@Model?.Descripcion</p>
+                    </div>
+
+                    <div class="mt-auto">
+                        <div class="row g-3">
+                            @if (uId == null)
+                            {
+                                <div class="col-12 text-center p-3 bg-dark rounded-4">Debes iniciar sesión para contactar.</div>
+                            }
+                            else if (esMiProducto)
+                            {
+                                <div class="col-sm-6"><a asp-action="Edit" asp-route-id="@Model?.IdProducto" class="btn btn-warning w-100 py-3 rounded-3 fw-bold">Editar Producto</a></div>
+                                <div class="col-sm-6"><a asp-action="Index" class="btn btn-outline-light w-100 py-3 rounded-3">Volver</a></div>
+                            }
+                            else
+                            {
+                                @if (esAdmin)
+                                {
+                                    <div class="col-12 mb-2"><a asp-action="Edit" asp-route-id="@Model?.IdProducto" class="btn btn-warning w-100 py-2 fw-bold">Editar (Admin)</a></div>
+                                }
+                                <div class="@colClass">
+                                    <a asp-controller="Chats" asp-action="IniciarChat" asp-route-receptorId="@Model?.IdUsuario" class="btn-main btn-chat">Chat Interno</a>
+                                </div>
+                                @if (tieneTelefono)
+                                {
+                                    <div class="col-sm-6">
+                                        <a href="https://wa.me/@whatsappUrl?text=@msj" target="_blank" class="btn-main btn-wa">WhatsApp</a>
+                                    </div>
+                                }
+                                <div class="col-12 mt-2"><a asp-action="Index" class="btn btn-outline-light w-100 py-2 rounded-3">Regresar</a></div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
