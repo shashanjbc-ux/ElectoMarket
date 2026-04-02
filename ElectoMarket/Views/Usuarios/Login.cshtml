@@ -1,0 +1,222 @@
+@model ElectoMarket.Models.LoginViewModel
+
+@{
+    Layout = null; // Pantalla completa sin la barra de navegación general
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ingresar - ElectroMarket</title>
+
+    @* Librerías de Estilos *@
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+            :root {
+                --bg-dark: #08080a;
+                --morado-neon: #7c4dff;
+                --cyan-neon: #00d2ff;
+            }
+
+            body {
+                background-color: var(--bg-dark);
+                color: #f4f4f4;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 100vh;
+                margin: 0;
+                font-family: 'Inter', system-ui, sans-serif;
+                overflow: hidden;
+            }
+
+                /* Fondo Decorativo */
+                body::before {
+                    content: "";
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    z-index: -1;
+                    background-image: radial-gradient(circle at 20% 30%, rgba(124, 77, 255, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 70%, rgba(0, 210, 255, 0.05) 0%, transparent 50%);
+                }
+
+            .card-login {
+                background-color: rgba(20, 20, 22, 0.8);
+                backdrop-filter: blur(20px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 20px;
+                padding: 45px;
+                width: 100%;
+                max-width: 420px;
+                box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+                position: relative;
+            }
+
+                .card-login::before {
+                    content: "";
+                    position: absolute;
+                    top: 0;
+                    left: 25%;
+                    right: 25%;
+                    height: 2px;
+                    background: linear-gradient(90deg, transparent, var(--morado-neon), var(--cyan-neon), transparent);
+                }
+
+            /* 🟢 ESTILOS DE TEXTO BLANCO 🟢 */
+            .form-label, label {
+                color: white !important;
+                font-weight: 600;
+                font-size: 0.9rem;
+                margin-bottom: 8px;
+                display: block;
+            }
+
+            .form-control-dark {
+                background-color: rgba(255, 255, 255, 0.05) !important;
+                border: 1px solid rgba(255, 255, 255, 0.1) !important;
+                color: white !important;
+                padding: 12px 15px;
+                border-radius: 12px;
+                transition: 0.3s;
+            }
+
+                .form-control-dark:focus {
+                    background-color: rgba(255, 255, 255, 0.08) !important;
+                    border-color: var(--cyan-neon) !important;
+                    box-shadow: 0 0 15px rgba(0, 210, 255, 0.2);
+                    outline: none;
+                }
+
+                /* Placeholders en blanco suave */
+                .form-control-dark::placeholder {
+                    color: rgba(255, 255, 255, 0.6) !important;
+                }
+
+            /* Botón Estilo Neón */
+            .btn-neon {
+                background: linear-gradient(45deg, #6f2dbd, #00d2ff);
+                color: white;
+                border: none;
+                padding: 13px;
+                border-radius: 12px;
+                font-weight: bold;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                transition: 0.3s;
+                box-shadow: 0 5px 15px rgba(111, 45, 189, 0.3);
+            }
+
+                .btn-neon:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 25px rgba(0, 210, 255, 0.4);
+                    color: white;
+                }
+
+            /* Enlaces inferiores */
+            .login-footer-links, .text-white {
+                color: white !important;
+                opacity: 1 !important;
+                text-decoration: none;
+                transition: 0.3s;
+            }
+
+                .login-footer-links:hover {
+                    color: var(--cyan-neon) !important;
+                    text-shadow: 0 0 8px var(--cyan-neon);
+                }
+
+            .btn-eye {
+                background-color: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-left: none;
+                color: rgba(255, 255, 255, 0.5);
+                border-radius: 0 12px 12px 0 !important;
+            }
+
+                .btn-eye:hover {
+                    color: var(--cyan-neon);
+                }
+
+            .form-control-dark.border-end-0 {
+                border-radius: 12px 0 0 12px !important;
+            }
+    </style>
+</head>
+<body>
+
+    <div class="card-login">
+        <div class="text-center mb-4">
+            <h2 class="fw-bold text-white">Iniciar <span style="color: var(--morado-neon);">Sesión</span></h2>
+            <p class="text-white small opacity-75">Bienvenido de nuevo a ElectroMarket</p>
+        </div>
+
+        @if (TempData["MensajeExito"] != null)
+        {
+            <div class="alert alert-success border-0 text-center mb-4" style="background: rgba(0, 255, 136, 0.1); color: #00ff88; font-size: 0.9rem; border-radius: 12px;">
+                <i class="bi bi-check-circle-fill me-2"></i> @TempData["MensajeExito"]
+            </div>
+        }
+
+        <form asp-controller="Usuarios" asp-action="Login" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3 small fw-bold"></div>
+
+            @* Campo de Correo *@
+            <div class="mb-3 text-start">
+                <label class="form-label">Correo Electrónico</label>
+                <input asp-for="Correo" class="form-control form-control-dark" placeholder="tu@correo.com" required />
+                <span asp-validation-for="Correo" class="text-danger small"></span>
+            </div>
+
+            @* Campo de Contraseña *@
+            <div class="mb-4 text-start">
+                <label class="form-label">Contraseña</label>
+                <div class="input-group">
+                    <input asp-for="Contrasena" id="loginPass" type="password" class="form-control form-control-dark border-end-0" placeholder="********" required />
+                    <button class="btn btn-eye" type="button" onclick="toggleLoginPassword()">
+                        <i id="loginEyeIcon" class="bi bi-eye"></i>
+                    </button>
+                </div>
+                <span asp-validation-for="Contrasena" class="text-danger small"></span>
+            </div>
+
+            <button type="submit" class="btn btn-neon w-100 mb-3">Entrar</button>
+
+            @* Enlaces inferiores en Blanco *@
+            <div class="text-center mt-3">
+                <a asp-action="SolicitarRecuperacion" class="login-footer-links small d-block mb-2">¿Olvidaste tu contraseña?</a>
+                
+                <p class="text-white small">
+                    ¿No tienes cuenta?
+                    <a asp-action="Register" class="fw-bold login-footer-links" style="color: var(--morado-neon) !important;">Regístrate aquí</a>
+                </p>
+                
+                <a asp-controller="Home" asp-action="Index" class="login-footer-links small opacity-75">Volver al inicio</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+            function toggleLoginPassword() {
+                const input = document.getElementById('loginPass');
+                const icon = document.getElementById('loginEyeIcon');
+                if (input.type === "password") {
+                    input.type = "text";
+                    icon.classList.replace("bi-eye", "bi-eye-slash");
+                } else {
+                    input.type = "password";
+                    icon.classList.replace("bi-eye-slash", "bi-eye");
+                }
+            }
+    </script>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+</body>
+</html>

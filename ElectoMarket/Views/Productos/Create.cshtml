@@ -1,0 +1,263 @@
+﻿@model ElectoMarket.Models.Producto
+@using Microsoft.AspNetCore.Http
+
+@{
+    Layout = null; 
+    var uId = Context.Session.GetInt32("UsuarioId");
+    var uNombre = Context.Session.GetString("UsuarioNombre") ?? "Usuario";
+    var uFoto = Context.Session.GetString("UsuarioFoto");
+    var miRol = Context.Session.GetInt32("UsuarioRol");
+    bool esAdmin = miRol == 1; 
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Publicar Equipo - ElectroMarket</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-dark: #08080a;
+            --glass-bg: rgba(18, 18, 22, 0.85);
+            --border-glass: rgba(255, 255, 255, 0.1);
+            --morado-neon: #7c4dff;
+            --cyan-neon: #00d2ff;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: white;
+            font-family: 'Inter', system-ui, sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- FONDO TECH --- */
+        .tech-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+            background-image: 
+                radial-gradient(circle at 10% 10%, rgba(124, 77, 255, 0.12) 0%, transparent 40%),
+                radial-gradient(circle at 90% 90%, rgba(0, 210, 255, 0.1) 0%, transparent 40%);
+        }
+        .tech-bg::after {
+            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 0L40 80M0 40L80 40' stroke='rgba(255,255,255,0.02)' stroke-width='0.5'/%3E%3C/svg%3E");
+        }
+
+        /* --- NAVBAR --- */
+        .navbar-custom { background: rgba(10, 10, 12, 0.9); backdrop-filter: blur(15px); border-bottom: 1px solid var(--border-glass); padding: 12px 0; }
+        .nav-link-tech { color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.85rem; font-weight: 500; transition: 0.3s; display: flex; align-items: center; }
+        .nav-link-tech:hover { color: var(--cyan-neon); text-shadow: 0 0 10px var(--cyan-neon); }
+        .profile-link { padding: 5px 10px; border-radius: 12px; transition: 0.3s; text-decoration: none !important; }
+        .profile-link:hover { background: rgba(255, 255, 255, 0.05); transform: translateY(-2px); }
+
+        /* --- FORMULARIO --- */
+        .form-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(30px);
+            border: 1px solid var(--border-glass);
+            border-radius: 24px;
+            width: 100%; max-width: 800px; padding: 40px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.7);
+            position: relative;
+            margin: 40px auto;
+        }
+
+        .form-container::before {
+            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 3px;
+            background: linear-gradient(90deg, var(--morado-neon), var(--cyan-neon));
+            border-radius: 24px 24px 0 0;
+            box-shadow: 0 0 15px var(--morado-neon);
+        }
+
+        /* 🟢 INTEGRACIÓN DE NUEVOS ESTILOS DE TEXTO 🟢 */
+        
+        /* Etiquetas principales (Nombre, Categoría, etc.) */
+        .form-label, label {
+            color: white !important;
+            font-weight: 600 !important;
+            opacity: 1 !important;
+        }
+
+        /* Texto de ayuda o sugerencia debajo de los títulos */
+        .text-white-50, p.small {
+            color: rgba(255, 255, 255, 0.8) !important;
+        }
+
+        /* Cuadros de texto y placeholders */
+        .form-control, .form-select {
+            background-color: rgba(255, 255, 255, 0.05) !important;
+            color: white !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 12px;
+            padding: 12px 15px;
+            transition: 0.3s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--morado-neon) !important;
+            box-shadow: 0 0 15px rgba(124, 77, 255, 0.3) !important;
+            background-color: rgba(0, 0, 0, 0.6) !important;
+            outline: none;
+        }
+
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.4) !important;
+        }
+
+        /* El texto del interruptor (Switch) de "Requiere reparación" */
+        .form-check-label {
+            color: white !important;
+        }
+
+        /* Menús desplegables */
+        .form-select option { background-color: #121216 !important; color: #ffffff !important; }
+        .form-select optgroup { background-color: #1c1c1f !important; color: var(--morado-neon) !important; font-weight: 800; }
+
+        .btn-morado { background-color: var(--morado-neon); color: white; border-radius: 12px; padding: 12px; font-weight: bold; border: none; transition: 0.3s; text-transform: uppercase; letter-spacing: 1px; }
+        .btn-morado:hover { background-color: #6236ff; box-shadow: 0 0 15px rgba(124, 77, 255, 0.4); transform: scale(1.02); color: white; }
+        
+        .form-check-input:checked { background-color: var(--morado-neon); border-color: var(--morado-neon); }
+    </style>
+</head>
+<body>
+
+    <div class="tech-bg"></div>
+
+    @* NAVBAR *@
+    <nav class="navbar-custom z-3">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <a asp-controller="Home" asp-action="Index" class="d-flex align-items-center text-decoration-none">
+                    <img src="/imagenes/Logo/Logo.jpg" alt="Logo" class="me-2" style="height: 40px; width: 40px; border-radius: 50%;">
+                    <span class="text-white fw-bold fs-5">ElectroMarket</span>
+                </a>
+                <div class="ms-5 d-flex gap-4">
+                    <a asp-controller="Productos" asp-action="Index" class="nav-link-tech"><i class="bi bi-shop me-1"></i> Catálogo</a>
+                    <a asp-controller="Comparacion" asp-action="Index" class="nav-link-tech"><i class="bi bi-arrow-left-right me-1"></i> Versus Tech</a>
+                    @if (esAdmin) { 
+                        <a asp-controller="Usuarios" asp-action="ListadoUsuarios" class="nav-link-tech"><i class="bi bi-people me-1"></i> Usuarios</a>
+                        <a asp-controller="Productos" asp-action="Gestionar" class="nav-link-tech"><i class="bi bi-box-seam me-1"></i> Productos</a>
+                    }
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-3">
+                <a asp-controller="Usuarios" asp-action="Perfil" class="d-flex align-items-center text-decoration-none profile-link">
+                    <img src="@(!string.IsNullOrEmpty(uFoto) ? uFoto : "/imagenes/placeholder-perfil.png")" class="rounded-circle border border-secondary me-2" style="width: 38px; height: 38px; object-fit: cover;">
+                    <div class="text-start">
+                        <div class="small text-white-50 lh-1">Hola,</div>
+                        <div class="text-white fw-bold lh-1">@uNombre</div>
+                    </div>
+                </a>
+                <form asp-controller="Usuarios" asp-action="Logout" method="post" class="m-0 ms-2">
+                    <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">Salir</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container flex-grow-1 d-flex flex-column align-items-center">
+        
+        <div class="form-container">
+            <div class="text-center mb-5">
+                <div class="d-inline-flex justify-content-center align-items-center mb-3" style="width: 60px; height: 60px; border-radius: 50%; background: rgba(124, 77, 255, 0.2); border: 2px solid var(--morado-neon);">
+                    <i class="bi bi-plus-lg fs-2" style="color: var(--morado-neon);"></i>
+                </div>
+                <h2 class="fw-bold text-white mb-1">Nuevo Producto</h2>
+                <p class="small">Sube tu equipo a la red de ElectroMarket</p>
+            </div>
+
+            <form asp-action="Create" method="post" enctype="multipart/form-data">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3 small fw-bold"></div>
+
+                <div class="row g-4">
+                    @* Nombre *@
+                    <div class="col-md-6">
+                        <label asp-for="Nombre" class="form-label">Nombre del Producto</label>
+                        <input asp-for="Nombre" class="form-control" placeholder="Ej: Lavadora Mabe 15kg" required />
+                        <span asp-validation-for="Nombre" class="text-danger small"></span>
+                    </div>
+
+                    @* Categoría *@
+                    <div class="col-md-6">
+                        <label asp-for="Categoria" class="form-label">Categoría</label>
+                        <select asp-for="Categoria" class="form-select" required>
+                            <option value="">-- Seleccionar --</option>
+                            <optgroup label="🎮 Tecnología y Gaming">
+                                <option value="Smartphones">Smartphones</option>
+                                <option value="Laptops y PCs">Laptops y PCs</option>
+                                <option value="Consolas de Videojuegos">Consolas de Videojuegos</option>
+                                <option value="Televisores y Smart TV">Televisores y Smart TV</option>
+                                <option value="Equipos de Audio y Audífonos">Equipos de Audio y Audífonos</option>
+                            </optgroup>
+                            <optgroup label="🏠 Electrodomésticos">
+                                <option value="Lavadoras">Lavadoras</option>
+                                <option value="Refrigeradores">Refrigeradores</option>
+                                <option value="Microondas">Microondas</option>
+                                <option value="Aire Acondicionado y Ventiladores">Aire Acondicionado y Ventiladores</option>
+                            </optgroup>
+                            <option value="Otros / Accesorios">Otros / Accesorios</option>
+                        </select>
+                        <span asp-validation-for="Categoria" class="text-danger small"></span>
+                    </div>
+
+                    @* Descripción *@
+                    <div class="col-12">
+                        <label asp-for="Descripcion" class="form-label">Descripción</label>
+                        <textarea asp-for="Descripcion" class="form-control" rows="4" placeholder="Detalles del equipo, estado físico, si tiene rayones..." required></textarea>
+                        <span asp-validation-for="Descripcion" class="text-danger small"></span>
+                    </div>
+
+                    @* Precio *@
+                    <div class="col-md-6">
+                        <label asp-for="Precio" class="form-label">Precio ($)</label>
+                        <input asp-for="Precio" type="number" step="0.01" class="form-control" placeholder="Ej: 1500000" required />
+                        <span asp-validation-for="Precio" class="text-danger small"></span>
+                    </div>
+
+                    @* Cantidad *@
+                    <div class="col-md-6">
+                        <label asp-for="Cantidad" class="form-label">Cantidad Disponible</label>
+                        <input asp-for="Cantidad" type="number" class="form-control" placeholder="Ej: 1" required />
+                        <span asp-validation-for="Cantidad" class="text-danger small"></span>
+                    </div>
+
+                    @* Foto *@
+                    <div class="col-12">
+                        <label class="form-label">Foto del Producto</label>
+                        <input type="file" name="archivoFoto" class="form-control" accept="image/*" required />
+                    </div>
+
+                    @* Switch Reparación *@
+                    <div class="col-12">
+                        <div class="form-check form-switch mt-2">
+                            <input asp-for="RequiereReparacion" class="form-check-input" type="checkbox" id="switchReparacion">
+                            <label class="form-check-label ms-2" for="switchReparacion">¿El equipo requiere reparación o tiene defectos?</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-5 text-center">
+                    <button type="submit" class="btn btn-morado px-5 py-3 w-100 fs-5"><i class="bi bi-cloud-arrow-up-fill me-2"></i> Publicar Producto</button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="mb-5 text-center">
+            <a asp-controller="Usuarios" asp-action="Perfil" class="text-white-50 text-decoration-none hover-white">
+                <i class="bi bi-arrow-left me-1"></i> Cancelar y volver al perfil
+            </a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

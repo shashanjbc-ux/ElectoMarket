@@ -1,0 +1,204 @@
+@{
+    Layout = null; // Diseño independiente oscuro premium
+}
+@using Microsoft.AspNetCore.Http
+
+@{
+    // Leemos la sesión para saber si mostrar el perfil o el login
+    var uId = Context.Session.GetInt32("UsuarioId");
+    var uNombre = Context.Session.GetString("UsuarioNombre") ?? "Invitado";
+    var uFoto = Context.Session.GetString("UsuarioFoto");
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Inicio - ElectroMarket</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-main: #0a0a0c;
+            --bg-nav: #121214;
+            --border-color: #27272a;
+            --text-main: #ffffff;
+            --text-muted: #a1a1aa;
+            --morado: #7c4dff;
+            --morado-hover: #651fff;
+            --morado-glow: rgba(124, 77, 255, 0.3);
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            font-family: 'Inter', system-ui, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        /* --- NAVBAR --- */
+        .navbar-main {
+            background-color: var(--bg-nav);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 0;
+        }
+
+        .nav-link-custom {
+            color: var(--text-muted);
+            text-decoration: none;
+            margin: 0 15px;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+
+            .nav-link-custom:hover {
+                color: white;
+            }
+
+        /* --- HERO SECTION --- */
+        .hero-section {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* Títulos */
+        .hero-title {
+            font-weight: 800;
+            font-size: 4.5rem;
+            letter-spacing: -2px;
+            margin-bottom: 10px;
+            line-height: 1.1;
+        }
+
+        .hero-subtitle {
+            color: var(--text-muted);
+            font-size: 1.25rem;
+            max-width: 700px;
+            margin: 10px auto 45px auto;
+            line-height: 1.6;
+        }
+
+        /* 🟢 BOTÓN PRINCIPAL (TIENDA) */
+        .btn-empezar {
+            background-color: var(--morado);
+            color: white;
+            border-radius: 50px;
+            padding: 18px 50px;
+            font-weight: 700;
+            border: none;
+            font-size: 1.1rem;
+            transition: 0.3s;
+            text-decoration: none;
+            box-shadow: 0 10px 25px var(--morado-glow);
+        }
+
+            .btn-empezar:hover {
+                background-color: var(--morado-hover);
+                color: white;
+                transform: translateY(-3px);
+                box-shadow: 0 15px 35px var(--morado-glow);
+            }
+
+        /* 🟢 BOTÓN SECUNDARIO (CONÓCENOS) - DISEÑO MEJORADO */
+        .btn-conocenos-premium {
+            background-color: rgba(255,255,255,0.03);
+            color: white;
+            border: 2px solid var(--border-color);
+            border-radius: 50px;
+            padding: 18px 50px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: 0.3s;
+            text-decoration: none;
+            backdrop-filter: blur(5px);
+        }
+
+            .btn-conocenos-premium:hover {
+                border-color: var(--morado);
+                color: var(--morado);
+                background-color: rgba(124, 77, 255, 0.05);
+                transform: translateY(-3px);
+            }
+
+        .profile-link {
+            transition: 0.3s;
+            text-decoration: none !important;
+        }
+
+            .profile-link:hover {
+                opacity: 0.8;
+                transform: scale(1.05);
+            }
+    </style>
+</head>
+<body>
+
+    @* NAVBAR *@
+    <nav class="navbar-main sticky-top shadow-sm">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                @* LOGO *@
+                <a asp-controller="Home" asp-action="Index" class="d-flex align-items-center text-decoration-none">
+                    <img src="/imagenes/Logo/Logo.jpg" asp-append-version="true" alt="Logo" style="height: 40px; width: 40px; border-radius: 50%; background-color: white; object-fit: contain; padding: 2px;">
+                    <span class="text-white fw-bold fs-5 ms-2 tracking-tight">ElectroMarket</span>
+                </a>
+                <a asp-controller="Home" asp-action="Index" class="nav-link-custom ms-4 text-white">Inicio</a>
+                <a asp-controller="Productos" asp-action="Index" class="nav-link-custom">Catálogo</a>
+            </div>
+
+            <div class="d-flex align-items-center">
+                @if (uId != null)
+                {
+                    <a asp-controller="Usuarios" asp-action="Perfil" class="me-4 d-flex align-items-center profile-link">
+                        <img src="@(!string.IsNullOrEmpty(uFoto) ? uFoto : "/imagenes/placeholder-perfil.png")"
+                             class="rounded-circle me-2 border border-secondary" style="width: 35px; height: 35px; object-fit: cover;">
+                        <span class="text-white fw-bold">@uNombre</span>
+                    </a>
+                    <form asp-controller="Usuarios" asp-action="Logout" method="post" class="m-0">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">Salir</button>
+                    </form>
+                }
+                else
+                {
+                    <a asp-controller="Usuarios" asp-action="Login" class="nav-link-custom">Ingresar</a>
+                    <a asp-controller="Usuarios" asp-action="Register" class="btn btn-outline-primary btn-sm rounded-pill px-4 fw-bold" style="border-color: var(--morado); color: var(--morado);">Registrarse</a>
+                }
+            </div>
+        </div>
+    </nav>
+
+    @* CONTENIDO CENTRAL *@
+    <section class="hero-section container">
+        <h1 class="hero-title text-white">Bienvenido a <br><span style="color: var(--morado);">ElectroMarket</span></h1>
+        <p class="hero-subtitle">La plataforma líder para comprar, vender y reparar tecnología de forma inteligente y sostenible.</p>
+
+        <div class="d-flex flex-column flex-sm-row gap-4">
+            @* Botón a Tienda *@
+            <a asp-controller="Productos" asp-action="Index" class="btn-empezar">
+                <i class="bi bi-shop me-2"></i> Explorar Tienda
+            </a>
+
+            @* 🟢 BOTÓN CONÓCENOS (Universal para todos) *@
+            <a asp-controller="Home" asp-action="Conocenos" class="btn-conocenos-premium">
+                <i class="bi bi-info-circle me-2"></i> Conócenos
+            </a>
+        </div>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

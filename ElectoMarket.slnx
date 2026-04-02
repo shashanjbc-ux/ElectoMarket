@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="ElectoMarket.Tests/ElectoMarket.Tests.csproj" Id="80d98b2d-3817-48b7-8d81-dcb0ab88e588" />
+  <Project Path="ElectoMarket/ElectoMarket.csproj" />
+</Solution>

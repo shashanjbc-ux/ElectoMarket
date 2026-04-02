@@ -1,0 +1,166 @@
+@using ElectoMarket.Data
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext _context
+@{
+    // Leemos los datos de la sesión para mostrarlos en toda la app
+    var uId = Context.Session.GetInt32("UsuarioId");
+    var uNombre = Context.Session.GetString("UsuarioNombre") ?? "Usuario";
+    var uFoto = Context.Session.GetString("UsuarioFoto");
+    var uRol = Context.Session.GetInt32("UsuarioRol");
+    bool esAdmin = uRol == 1;
+
+    // 🟢 CONTADOR DE MENSAJES NO LEÍDOS PARA LA NAVBAR
+    int mensajesSinLeer = 0;
+    if (uId != null)
+    {
+        mensajesSinLeer = _context.Mensajes
+            .Include(m => m.Chat)
+            .Count(m => !m.Leido && m.RemitenteId != uId && (m.Chat.Usuario1Id == uId || m.Chat.Usuario2Id == uId));
+    }
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - ElectroMarket</title>
+    
+    @* Librerías y Estilos *@
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+    <style>
+        .btn-morado { background-color: #6f2dbd; color: white; border: none; }
+        .btn-morado:hover { background-color: #5936a2; color: white; }
+        .hover-zoom:hover { transform: scale(1.1); transition: 0.2s; }
+        /* Efecto de brillo suave para el nombre del Admin */
+        .admin-glow { text-shadow: 0 0 5px rgba(255, 193, 7, 0.3); }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom shadow-sm mb-3">
+            <div class="container">
+                
+                @* 🟢 LOGO *@
+                <a asp-controller="Home" asp-action="Index" class="navbar-brand d-flex align-items-center text-decoration-none">
+                    <img src="/imagenes/Logo/Logo.jpg" alt="Logo" style="height: 40px; width: 40px; border-radius: 50%; background-color: white; object-fit: contain;">
+                    <span class="fw-bold text-primary fs-5 ms-2">ElectroMarket</span>
+                </a>
+                
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between align-items-center">
+                    <ul class="navbar-nav flex-grow-1 ms-3">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark fw-medium" asp-controller="Productos" asp-action="Index">Catálogo</a>
+                        </li>
+                        
+                        @* 🛡️ MENÚ PARA EL ADMIN *@
+                        @if (esAdmin)
+                        {
+                            <li class="nav-item ms-3">
+                                <a class="nav-link text-danger fw-bold" asp-controller="Productos" asp-action="Gestionar">
+                                    <i class="bi bi-box-seam"></i> Panel Admin
+                                </a>
+                            </li>
+                            <li class="nav-item ms-2">
+                                <a class="nav-link text-danger fw-bold" asp-controller="Usuarios" asp-action="ListadoUsuarios">
+                                    <i class="bi bi-people"></i> Gestionar Usuarios
+                                </a>
+                            </li>
+                        }
+                    </ul>
+
+                    <div class="d-flex align-items-center">
+                        @if (uId != null)
+                        {
+                            // 💬 ICONO DE CHAT CON NÚMERO DE MENSAJES
+                            <a class="text-dark position-relative hover-zoom me-4" asp-controller="Chats" asp-action="Index" title="Mis Mensajes">
+                                <i class="bi bi-chat-dots fs-5"></i>
+                                @if (mensajesSinLeer > 0)
+                                {
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger shadow-sm" 
+                                          style="font-size: 0.65rem; padding: 0.35em 0.65em; transform: translate(-20%, -10%) !important;">
+                                        @(mensajesSinLeer > 99 ? "99+" : mensajesSinLeer.ToString())
+                                    </span>
+                                }
+                            </a>
+                            
+                            // 🟢 PERFIL DEL USUARIO
+                            <a asp-controller="Usuarios" asp-action="Perfil" class="d-flex align-items-center text-decoration-none me-4 hover-zoom">
+                                <img src="@(!string.IsNullOrEmpty(uFoto) ? uFoto : "/imagenes/FotoPerfilPredeterminada/Usuario.jpg")" 
+                                     class="rounded-circle border border-secondary shadow-sm me-2" 
+                                     style="width: 35px; height: 35px; object-fit: cover;">
+                                
+                                <span class="text-secondary small">
+                                    Hola, <span class="fw-bold text-dark">@uNombre</span>
+                                    @if (esAdmin)
+                                    {
+                                        <span class="badge bg-warning text-dark ms-1 shadow-sm" style="font-size: 0.7rem;"><i class="bi bi-shield-lock-fill"></i> ADMIN</span>
+                                    }
+                                </span>
+                            </a>
+                            
+                            // 🚪 BOTÓN SALIR
+                            <form asp-controller="Usuarios" asp-action="Logout" method="post" class="m-0 p-0">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-outline-danger rounded-pill fw-bold btn-sm px-3 shadow-sm">
+                                    Salir
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <a asp-controller="Usuarios" asp-action="Login" class="btn btn-outline-dark px-4 shadow-sm me-2 rounded-pill fw-bold">
+                                Ingresar
+                            </a>
+                            <a asp-controller="Usuarios" asp-action="Register" class="btn btn-morado px-4 shadow-sm rounded-pill fw-bold">
+                                Registrarse
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    @* Scripts Básicos *@
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+
+    @* 🟢 SCRIPT DETECTOR DE AFK (Cierre de sesión tras 30 min) *@
+    @if (uId != null)
+    {
+        <script>
+            const limiteAFK = 30 * 60 * 1000; 
+
+            function actualizarActividad() {
+                localStorage.setItem('ultimaActividad', Date.now());
+            }
+
+            window.onload = actualizarActividad;
+            document.onmousemove = actualizarActividad;
+            document.onkeypress = actualizarActividad;
+            document.onclick = actualizarActividad;
+            document.ontouchstart = actualizarActividad;
+
+            setInterval(() => {
+                const ultimaActividad = localStorage.getItem('ultimaActividad');
+                if (ultimaActividad && (Date.now() - ultimaActividad > limiteAFK)) {
+                    localStorage.removeItem('ultimaActividad');
+                    window.location.href = '/Usuarios/LogoutAFK';
+                }
+            }, 10000); 
+        </script>
+    }
+</body>
+</html>
