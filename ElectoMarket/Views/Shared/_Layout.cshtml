@@ -32,11 +32,33 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 
     <style>
+        /* Botones originales */
         .btn-morado { background-color: #6f2dbd; color: white; border: none; }
         .btn-morado:hover { background-color: #5936a2; color: white; }
         .hover-zoom:hover { transform: scale(1.1); transition: 0.2s; }
-        /* Efecto de brillo suave para el nombre del Admin */
         .admin-glow { text-shadow: 0 0 5px rgba(255, 193, 7, 0.3); }
+
+        /* 🟢 MODO OSCURO GLOBAL 🟢 */
+        body { 
+            background-color: #0F0F10 !important; /* El fondo negro mate */
+            color: #FFFFFF !important; 
+        }
+        
+        /* Oscurecer la barra de navegación */
+        .navbar { 
+            background-color: #161618 !important; 
+            border-bottom: 1px solid #2d2d30 !important; 
+        }
+        
+        /* Cambiar textos negros a blancos en el menú */
+        .navbar-brand span, .nav-link, .text-dark, .text-secondary { 
+            color: #FFFFFF !important; 
+        }
+        
+        /* Resaltar los botones de Admin en rojo neón */
+        .nav-link.text-danger { 
+            color: #ff4a68 !important; 
+        }
     </style>
 </head>
 <body>
@@ -54,6 +76,13 @@
                     <ul class="navbar-nav flex-grow-1 ms-3">
                         <li class="nav-item">
                             <a class="nav-link text-dark fw-medium" asp-controller="Productos" asp-action="Index">Catálogo</a>
+                        </li>
+                        
+                        @* 🎬 BOTÓN DE TUTORIALES *@
+                        <li class="nav-item ms-3">
+                            <a class="nav-link text-dark fw-bold" asp-area="" asp-controller="Guias" asp-action="Index" style="opacity: 0.8; transition: 0.3s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">
+                                <i class="bi bi-play-btn-fill" style="color: #00ff88; text-shadow: 0 0 8px rgba(0,255,136,0.5);"></i> Tutoriales
+                            </a>
                         </li>
                         
                         @* 🛡️ MENÚ PARA EL ADMIN *@

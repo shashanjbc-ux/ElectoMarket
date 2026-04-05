@@ -1,0 +1,227 @@
+﻿@model IEnumerable<ElectoMarket.Models.Guia>
+@using Microsoft.AspNetCore.Http
+
+@{
+    ViewData["Title"] = "Tutoriales y Guías";
+    int? miId = Context.Session.GetInt32("UsuarioId");
+    int? miRol = Context.Session.GetInt32("UsuarioRol");
+    bool esAdmin = miRol == 1;
+
+    int totalGuias = Model?.Count() ?? 0;
+    int misGuias = miId != null ? Model?.Count(g => g.IdUsuario == miId) ?? 0 : 0;
+}
+
+@* 🛠️ FUNCIÓN PARA EXTRAER LA IMAGEN DE YOUTUBE 🛠️ *@
+@functions {
+    public string ObtenerIdYouTube(string url)
+    {
+        if (string.IsNullOrEmpty(url)) return "";
+        try {
+            if (url.Contains("v=")) return url.Split("v=")[1].Split('&')[0];
+            if (url.Contains("youtu.be/")) return url.Split("youtu.be/")[1].Split('?')[0];
+            if (url.Contains("embed/")) return url.Split("embed/")[1].Split('?')[0];
+        } catch { return ""; }
+        return "";
+    }
+}
+
+<style>
+    /* Estilo Base Tech-Dark */
+    body { background-color: #0F0F10; color: #FFFFFF; font-family: 'Inter', sans-serif; }
+    
+    /* Clases de utilidad para el diseño */
+    .bg-panel-dark { background-color: #111622; border: 1px solid rgba(255,255,255,0.05); }
+    .border-tech-alert { border: 2px solid #7c4dff !important; box-shadow: 0 0 20px rgba(124, 77, 255, 0.4) !important; }
+    
+    /* Animación de hover para las tarjetas */
+    .guia-card { transition: all 0.3s ease; }
+    .guia-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.5) !important; }
+    
+    /* Efecto hover sobre la miniatura de video */
+    .video-thumbnail-container:hover .play-overlay { background: rgba(0,0,0,0.1) !important; }
+    .video-thumbnail-container:hover .play-icon { transform: scale(1.1); }
+    .play-icon { transition: transform 0.3s ease; }
+</style>
+
+<div class="row mt-4">
+    @* 🟢 COLUMNA IZQUIERDA: PANEL DE CONTROL Y ESTADÍSTICAS *@
+    <div class="col-md-4 mb-4">
+        <div class="card p-4 shadow-lg h-100" style="border-radius: 20px; background-color: #111622; border: 2px solid #a155ff; box-shadow: 0 0 15px rgba(161, 85, 255, 0.4);">
+            <div class="text-center mb-4 position-relative">
+                <div class="d-inline-block p-4 rounded-circle mb-3" style="background-color: #0a0e17; box-shadow: 0 0 20px rgba(161, 85, 255, 0.6);">
+                    <i class="bi bi-journal-bookmark-fill fs-1" style="color: #a155ff; text-shadow: 0 0 10px #a155ff;"></i>
+                </div>
+                <h2 class="fw-bold text-white">Aprende con la Comunidad</h2>
+                <p style="color: #8b9bb4;">Guías, Tutoriales y Trucos para tus equipos electrónicos</p>
+            </div>
+            
+            <div class="row g-3 text-center mb-4">
+                <div class="col-6">
+                    <div class="p-3 border rounded shadow-sm" style="border-radius: 12px; border-color: rgba(255, 255, 255, 0.1); background: rgba(0,0,0,0.2);">
+                        <div class="fw-bold fs-3" style="color: #00d2ff; text-shadow: 0 0 5px #00d2ff;">@totalGuias</div>
+                        <div class="small" style="color: #00d2ff;">Total Guías</div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="p-3 border rounded shadow-sm" style="border-radius: 12px; border-color: rgba(255, 255, 255, 0.1); background: rgba(0,0,0,0.2);">
+                        <div class="fw-bold fs-3" style="color: #00ff88; text-shadow: 0 0 5px #00ff88;">@misGuias</div>
+                        <div class="small" style="color: #00ff88;">Mis Aportes</div>
+                    </div>
+                </div>
+            </div>
+
+            @if (miId != null)
+            {
+                <div class="d-flex flex-column gap-3 mt-auto">
+                    <a asp-action="Create" class="btn w-100 fw-bold rounded-pill text-start d-flex align-items-center" style="background-color: transparent; color: #00ff88; border: 2px solid #00ff88; box-shadow: 0 0 10px rgba(0, 255, 136, 0.4);">
+                        <i class="bi bi-cloud-arrow-up-fill fs-5 me-3"></i> Publicar Nueva Guía
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-dark text-center mt-auto border-secondary" style="background: rgba(255,255,255,0.05); color: #ccc; border-radius: 15px;">
+                    Inicia sesión para publicar tus propios tutoriales.
+                </div>
+            }
+        </div>
+    </div>
+    
+    @* 🔵 COLUMNA DERECHA: CUADRÍCULA DE VIDEOS *@
+    <div class="col-md-8">
+        <div class="card p-4 shadow-lg border h-100" style="border-radius: 20px; background-color: #111622; border-color: rgba(255, 255, 255, 0.1);">
+            <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary">
+                <h3 class="fw-bold text-white"><i class="bi bi-collection-play me-2 text-info"></i> Catálogo de Guías</h3>
+            </div>
+            
+            <div class="row g-4">
+                @if (Model == null || !Model.Any())
+                {
+                    <div class="col-12 text-center py-5">
+                        <i class="bi bi-camera-video-off fs-1 text-muted mb-3 d-block"></i>
+                        <h4 class="text-muted">Aún no hay tutoriales</h4>
+                        <p class="text-secondary">¡Sé el primero en compartir tu conocimiento!</p>
+                    </div>
+                }
+                else
+                {
+                    string[] colores = { "#00ff88", "#00d2ff", "#a155ff" };
+                    int colorIndex = 0;
+
+                    @foreach (var item in Model)
+                    {
+                        var colorActual = colores[colorIndex % 3];
+                        colorIndex++;
+
+                        <div class="col-md-6">
+                            <div class="card h-100 shadow-sm border-0 guia-card" style="border-radius: 15px; background-color: #0a0e17; border: 1px solid @colorActual; box-shadow: 0 0 10px @(colorActual)40; overflow: hidden;">
+                                
+                                @* 🎬 ZONA DE LA MINIATURA (IMAGEN) 🎬 *@
+                                <div class="ratio ratio-16x9 bg-black position-relative video-thumbnail-container">
+                                    @if (!string.IsNullOrEmpty(item.VideoUrl) && item.VideoUrl.StartsWith("http"))
+                                    {
+                                        string ytId = ObtenerIdYouTube(item.VideoUrl);
+                                        if (!string.IsNullOrEmpty(ytId))
+                                        {
+                                            @* Extrae la foto oficial de YouTube *@
+                                            <img src="https://img.youtube.com/vi/@ytId/maxresdefault.jpg" 
+                                                 onerror="this.src='https://img.youtube.com/vi/@ytId/hqdefault.jpg';" 
+                                                 class="w-100 h-100" style="object-fit: cover;" alt="Miniatura YouTube" />
+                                        }
+                                        else
+                                        {
+                                            <div class="d-flex justify-content-center align-items-center w-100 h-100 bg-secondary">
+                                                <i class="bi bi-link-45deg fs-1 text-white"></i>
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        @* Si es un video local, muestra el primer frame *@
+                                        <video preload="metadata" class="w-100 h-100" style="object-fit: cover;">
+                                            <source src="@item.VideoUrl" type="video/mp4">
+                                        </video>
+                                    }
+
+                                    @* BOTÓN DE PLAY SUPERPUESTO (Lleva al detalle para ver el video) *@
+                                    <a asp-action="Details" asp-route-id="@item.IdGuia" class="position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center text-decoration-none play-overlay" style="background: rgba(0,0,0,0.5); transition: background 0.3s;">
+                                        <i class="bi bi-play-circle-fill play-icon" style="font-size: 4rem; color: @colorActual; filter: drop-shadow(0 0 15px @(colorActual)80);"></i>
+                                    </a>
+                                </div>
+                                
+                                <div class="card-body">
+                                    <h5 class="fw-bold text-white text-truncate" title="@item.Titulo">@item.Titulo</h5>
+                                    <p class="card-text text-muted mb-3" style="font-size: 0.9rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                        @item.Descripcion
+                                    </p>
+                                    <p class="small mb-0" style="color: #00d2ff;">
+                                        <i class="bi bi-person-circle me-1"></i> @(item.Usuario?.Nombre ?? "Vendedor")
+                                    </p>
+                                </div>
+                                
+                                <div class="card-footer bg-transparent border-0 d-flex justify-content-between align-items-center pb-3">
+                                    <small class="text-secondary">@item.FechaPublicacion.ToString("dd/MM/yyyy")</small>
+                                    
+                                    @* 🛠️ BLOQUE DE BOTONES ACCIONES 🛠️ *@
+                                    <div class="d-flex gap-2">
+                                        <a asp-action="Details" asp-route-id="@item.IdGuia" class="btn btn-sm rounded-circle p-2" style="color: #00ff88; background: rgba(0,255,136,0.1);" title="Ver Completo">
+                                            <i class="bi bi-eye-fill"></i>
+                                        </a>
+                                        
+                                        @if (item.IdUsuario == miId || esAdmin)
+                                        {
+                                            <a asp-action="Edit" asp-route-id="@item.IdGuia" class="btn btn-sm rounded-circle p-2" style="color: #a155ff; background: rgba(161,85,255,0.1);" title="Editar">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </a>
+                                            
+                                            <form asp-action="Delete" asp-route-id="@item.IdGuia" method="post" id="formEliminar-@item.IdGuia" class="m-0">
+                                                @Html.AntiForgeryToken()
+                                                <button type="button" class="btn btn-sm rounded-circle p-2 btn-eliminar" style="color: #ff4a68; background: rgba(255,74,104,0.1);" title="Eliminar" data-id="@item.IdGuia">
+                                                    <i class="bi bi-trash-fill"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function () {
+            // Manejador del botón eliminar
+            $('.btn-eliminar').click(function () {
+                var id = $(this).data('id');
+                var form = $('#formEliminar-' + id);
+
+                Swal.fire({
+                    title: '<span style="color: #00d2ff; font-weight: 800; font-size: 1.5rem;">SISTEMA DE SEGURIDAD</span>',
+                    html: '<b style="color: #eee; font-size: 1.1rem;">¿Confirmas la eliminación de este tutorial?</b><br><span style="color: #aaa; font-size: 0.9rem;">Esta acción borrará el archivo y el registro de forma permanente.</span>',
+                    icon: 'warning',
+                    background: '#161618',
+                    color: '#fff',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ff4a68',
+                    cancelButtonColor: '#2d2d30',
+                    confirmButtonText: '<i class="bi bi-trash-fill me-2"></i>Sí, Eliminar',
+                    cancelButtonText: 'No, Cancelar',
+                    backdrop: `rgba(124, 77, 255, 0.1)`,
+                    customClass: {
+                        popup: 'border-tech-alert',
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    </script>
+}

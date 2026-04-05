@@ -54,14 +54,17 @@ namespace ElectoMarket.Tests
             await page.FillAsync("textarea[name='Descripcion']", descripcionLarga);
 
             // ========================================================
-            // 4. SUBIR FOTO DE PERFIL EN MEMORIA
+            // 4. SUBIR FOTO DE PERFIL EN MEMORIA (CORREGIDO)
             // ========================================================
-            // Busca el input de tipo archivo (para la foto de perfil) e inyecta la foto falsa
+            // 🟢 EL TRUCO MEJORADO: Una imagen REAL de 1x1 píxel en formato PNG
+            // Convertimos una cadena de texto (Base64) en los bytes de una imagen PNG real
+            byte[] imagenPixelReal = System.Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=");
+
             await page.SetInputFilesAsync("input[type='file']", new FilePayload
             {
-                Name = "perfil_super_fachero.jpg",
-                MimeType = "image/jpeg",
-                Buffer = new byte[] { 0xFF, 0xD8, 0xFF, 0xE0 }
+                Name = "perfil_real_robot.png",
+                MimeType = "image/png",
+                Buffer = imagenPixelReal
             });
 
             // ========================================================

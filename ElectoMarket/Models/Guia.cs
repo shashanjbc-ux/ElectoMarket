@@ -1,20 +1,33 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using ElectoMarket.Models; // <-- ¡Esta es la línea mágica que faltaba!
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ElectoMarket.Entities
+namespace ElectoMarket.Models
 {
     public class Guia
     {
         [Key]
         public int IdGuia { get; set; }
-        public string Titulo { get; set; } = string.Empty;
-        public string? Descripcion { get; set; }
-        public DateTime FechaPublicacion { get; set; } = DateTime.Now;
-        public int IdUsuario { get; set; }
 
+        [Required(ErrorMessage = "El título es obligatorio")]
+        // 🟢 Rango: 50 caracteres (10 pal) a 150 caracteres (30 pal)
+        [StringLength(150, MinimumLength = 50, ErrorMessage = "El título debe tener entre 10 y 30 palabras.")]
+        [RegularExpression(@"^[^0-9]*$", ErrorMessage = "El título NO puede contener números.")]
+        public string Titulo { get; set; }
+
+        [Required(ErrorMessage = "La descripción es obligatoria")]
+        // 🟢 Rango: 50 caracteres (10 pal) a 500 caracteres (100 pal)
+        [StringLength(500, MinimumLength = 50, ErrorMessage = "La descripción debe tener entre 10 y 100 palabras.")]
+        public string Descripcion { get; set; }
+
+        // Aquí guardaremos la ruta del video (ej: /videos/guias/tutorial.mp4)
+        public string? VideoUrl { get; set; }
+
+        public DateTime FechaPublicacion { get; set; } = DateTime.Now;
+
+        // Relación con el creador del video
+        [ForeignKey("Usuario")]
+        public int IdUsuario { get; set; }
         public virtual Usuario? Usuario { get; set; }
-        public virtual ICollection<ArchivoGuia>? Archivos { get; set; }
     }
 }

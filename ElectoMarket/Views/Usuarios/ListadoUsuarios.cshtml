@@ -26,186 +26,202 @@
 
     <style>
         :root {
-            --bg-dark: #08080a;
-            --glass-bg: rgba(18, 18, 22, 0.85);
-            --morado-neon: #7c4dff;
-            --cyan-neon: #00d2ff;
-            --border-glass: rgba(255, 255, 255, 0.1);
+        --bg-dark: #08080a;
+        --glass-bg: rgba(18, 18, 22, 0.85);
+        --morado-neon: #7c4dff;
+        --cyan-neon: #00d2ff;
+        --border-glass: rgba(255, 255, 255, 0.1);
         }
 
         body {
-            background-color: var(--bg-dark);
-            color: white;
-            font-family: 'Inter', system-ui, sans-serif;
-            min-height: 100vh;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
+        background-color: var(--bg-dark);
+        color: white;
+        font-family: 'Inter', system-ui, sans-serif;
+        min-height: 100vh;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
         }
 
         .tech-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            background-image: radial-gradient(circle at 15% 15%, rgba(124, 77, 255, 0.15) 0%, transparent 45%), radial-gradient(circle at 85% 85%, rgba(0, 210, 255, 0.1) 0%, transparent 45%);
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        background-image: radial-gradient(circle at 15% 15%, rgba(124, 77, 255, 0.15) 0%, transparent 45%), radial-gradient(circle at 85% 85%, rgba(0, 210, 255, 0.1) 0%, transparent 45%);
         }
 
         .navbar-custom {
-            background: rgba(10, 10, 12, 0.9);
-            backdrop-filter: blur(15px);
-            border-bottom: 1px solid var(--border-glass);
-            padding: 12px 0;
+        background: rgba(10, 10, 12, 0.9);
+        backdrop-filter: blur(15px);
+        border-bottom: 1px solid var(--border-glass);
+        padding: 12px 0;
         }
 
         .nav-link-tech {
-            color: rgba(255,255,255,0.6);
-            text-decoration: none;
-            font-size: 0.85rem;
-            font-weight: 500;
-            transition: 0.3s;
-            display: flex;
-            align-items: center;
+        color: rgba(255,255,255,0.6);
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: 0.3s;
+        display: flex;
+        align-items: center;
         }
 
-            .nav-link-tech:hover {
-                color: var(--cyan-neon);
-                text-shadow: 0 0 10px var(--cyan-neon);
-            }
+        .nav-link-tech:hover {
+        color: var(--cyan-neon);
+        text-shadow: 0 0 10px var(--cyan-neon);
+        }
 
         .hover-white:hover {
-            color: white !important;
-            transition: 0.2s;
+        color: white !important;
+        transition: 0.2s;
         }
 
         .admin-container {
-            flex-grow: 1;
-            padding: 40px 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        flex-grow: 1;
+        padding: 40px 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
         }
 
         .glass-panel {
-            background: var(--glass-bg);
-            backdrop-filter: blur(30px);
-            border: 1px solid var(--border-glass);
-            border-radius: 24px;
-            width: 100%;
-            max-width: 1200px;
-            padding: 35px;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.7);
-            position: relative;
+        background: var(--glass-bg);
+        backdrop-filter: blur(30px);
+        border: 1px solid var(--border-glass);
+        border-radius: 24px;
+        width: 100%;
+        max-width: 1200px;
+        padding: 35px;
+        box-shadow: 0 30px 60px rgba(0,0,0,0.7);
+        position: relative;
         }
 
-            .glass-panel::before {
-                content: "";
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 3px;
-                background: linear-gradient(90deg, var(--morado-neon), var(--cyan-neon));
-                border-radius: 24px 24px 0 0;
-            }
+        .glass-panel::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: linear-gradient(90deg, var(--morado-neon), var(--cyan-neon));
+        border-radius: 24px 24px 0 0;
+        }
 
         .search-panel {
-            background-color: rgba(255,255,255,0.02);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 15px;
-            padding: 25px;
+        background-color: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 15px;
+        padding: 25px;
         }
 
         .form-control-dark {
-            background-color: rgba(0,0,0,0.5) !important;
-            border: 1px solid rgba(255,255,255,0.1) !important;
-            color: white !important;
+        background-color: rgba(0,0,0,0.5) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        color: white !important;
         }
 
-            .form-control-dark:focus {
-                border-color: var(--cyan-neon) !important;
-                box-shadow: 0 0 10px rgba(0, 210, 255, 0.2) !important;
-            }
+        .form-control-dark:focus {
+        border-color: var(--cyan-neon) !important;
+        box-shadow: 0 0 10px rgba(0, 210, 255, 0.2) !important;
+        }
 
         .table-custom {
-            color: white;
-            border-collapse: separate;
-            border-spacing: 0 12px;
+        color: white;
+        border-collapse: separate;
+        border-spacing: 0 12px;
         }
 
-            .table-custom thead th {
-                border: none;
-                color: var(--cyan-neon);
-                text-transform: uppercase;
-                font-size: 0.75rem;
-                letter-spacing: 1.5px;
-                padding: 15px;
-                background: #ffffff;
-            }
+        .table-custom thead th {
+        border: none;
+        color: var(--cyan-neon);
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1.5px;
+        padding: 15px;
+        background: #ffffff;
+        }
 
-                .table-custom thead th:first-child {
-                    border-radius: 12px 0 0 12px;
-                }
+        .table-custom thead th:first-child {
+        border-radius: 12px 0 0 12px;
+        }
 
-                .table-custom thead th:last-child {
-                    border-radius: 0 12px 12px 0;
-                }
+        .table-custom thead th:last-child {
+        border-radius: 0 12px 12px 0;
+        }
 
-            .table-custom tbody tr {
-                background: #ffffff;
-                transition: 0.3s;
-                box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-                border-radius: 12px;
-            }
+        .table-custom tbody tr {
+        background: #ffffff;
+        transition: 0.3s;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        border-radius: 12px;
+        }
 
-            .table-custom td {
-                border: none;
-                padding: 15px;
-                vertical-align: middle;
-            }
+        .table-custom td {
+        border: none;
+        padding: 15px;
+        vertical-align: middle;
+        }
 
         /* 🟢 ESTILOS DE ROL CON ICONOS 🟢 */
         .badge-admin {
-            background: rgba(220, 53, 69, 0.1);
-            color: #dc3545;
-            border: 1px solid rgba(220, 53, 69, 0.3);
-            border-radius: 10px;
-            font-weight: 800;
-            box-shadow: 0 4px 10px rgba(220, 53, 69, 0.1);
+        background: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+        border: 1px solid rgba(220, 53, 69, 0.3);
+        border-radius: 10px;
+        font-weight: 800;
+        box-shadow: 0 4px 10px rgba(220, 53, 69, 0.1);
         }
 
         .badge-client {
-            background: rgba(0, 210, 255, 0.1);
-            color: #0099cc;
-            border: 1px solid rgba(0, 210, 255, 0.3);
-            border-radius: 10px;
-            font-weight: 800;
-            box-shadow: 0 4px 10px rgba(0, 210, 255, 0.1);
+        background: rgba(0, 210, 255, 0.1);
+        color: #0099cc;
+        border: 1px solid rgba(0, 210, 255, 0.3);
+        border-radius: 10px;
+        font-weight: 800;
+        box-shadow: 0 4px 10px rgba(0, 210, 255, 0.1);
         }
 
         .btn-delete-neon {
-            border: 1px solid rgba(220, 53, 69, 0.5);
-            color: #dc3545;
-            border-radius: 50px;
-            padding: 6px 12px;
-            transition: 0.3s;
-            background: transparent;
+        border: 1px solid rgba(220, 53, 69, 0.5);
+        color: #dc3545;
+        border-radius: 50px;
+        padding: 6px 12px;
+        transition: 0.3s;
+        background: transparent;
         }
 
-            .btn-delete-neon:hover {
-                background: #dc3545;
-                color: white;
-                box-shadow: 0 0 15px rgba(220, 53, 69, 0.5);
-            }
+        .btn-delete-neon:hover {
+        background: #dc3545;
+        color: white;
+        box-shadow: 0 0 15px rgba(220, 53, 69, 0.5);
+        }
 
         .profile-thumb {
-            width: 45px;
-            height: 45px;
-            object-fit: cover;
-            border: 2px solid var(--morado-neon);
-            border-radius: 50%;
+        width: 45px;
+        height: 45px;
+        object-fit: cover;
+        border: 2px solid var(--morado-neon);
+        border-radius: 50%;
+        }
+        
+        /* 🟢 MODO OSCURO PARA LA LISTA DE USUARIOS 🟢 */
+        .card, .bg-white, .list-group-item {
+        background-color: #161618 !important;
+        border: 1px solid #2d2d30 !important;
+        color: #FFFFFF !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
+        }
+        
+        .text-dark, h5, p, span {
+        color: #FFFFFF !important;
+        }
+        
+        .text-muted {
+        color: #a1a1aa !important;
         }
     </style>
 </head>
@@ -220,8 +236,14 @@
                     <img src="/imagenes/Logo/Logo.jpg" alt="Logo" class="me-2" style="height: 40px; width: 40px; border-radius: 50%;">
                     <span class="text-white fw-bold fs-5">ElectroMarket</span>
                 </a>
-                <div class="ms-5 d-flex gap-4">
+                <div class="ms-5 d-flex gap-4 align-items-center">
                     <a asp-controller="Productos" asp-action="Index" class="nav-link-tech"><i class="bi bi-shop me-1"></i> Catálogo</a>
+                    
+                    @* 🎬 BOTÓN DE TUTORIALES *@
+                    <a asp-controller="Guias" asp-action="Index" class="nav-link-tech text-decoration-none d-flex align-items-center" style="color: rgba(255,255,255,0.6); font-size: 0.85rem; font-weight: 500; transition: 0.3s; margin-left: 1.5rem;" onmouseover="this.style.color='#00ff88'; this.style.textShadow='0 0 10px #00ff88';" onmouseout="this.style.color='rgba(255,255,255,0.6)'; this.style.textShadow='none';">
+                        <i class="bi bi-play-btn-fill me-1" style="color: #00ff88; text-shadow: 0 0 5px rgba(0,255,136,0.5);"></i> Tutoriales
+                    </a>
+
                     @if (esAdmin)
                     {
                         <a asp-controller="Usuarios" asp-action="ListadoUsuarios" class="text-white text-decoration-none small fw-bold hover-white"><i class="bi bi-people me-1"></i> Gestión Usuarios</a>
@@ -274,29 +296,29 @@
                 <table class="table table-custom align-middle">
                     <thead>
                         <tr>
-                            <th>Usuario</th>
-                            <th>Contacto</th>
-                            <th>Ciudad</th>
-                            <th class="text-center">Rango / Rol</th>
-                            <th class="text-center">Acciones</th>
+                            <th style="background-color: #1c1c1f !important;">Usuario</th>
+                            <th style="background-color: #1c1c1f !important;">Contacto</th>
+                            <th style="background-color: #1c1c1f !important;">Ciudad</th>
+                            <th class="text-center" style="background-color: #1c1c1f !important;">Rango / Rol</th>
+                            <th class="text-center" style="background-color: #1c1c1f !important;">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var item in Model)
                         {
                             <tr>
-                                <td>
+                                <td style="background-color: #161618 !important;">
                                     <div class="d-flex align-items-center">
                                         <img src="@(string.IsNullOrEmpty(item.FotoPerfilUrl) ? "/imagenes/placeholder-perfil.png" : item.FotoPerfilUrl)" class="profile-thumb me-3 shadow-sm" />
                                         <div>
-                                            <div class="fw-bold text-dark fs-6">@item.Nombre</div>
-                                            <small class="text-secondary">ID: #@item.IdUsuario</small>
+                                            <div class="fw-bold text-white fs-6">@item.Nombre</div>
+                                            <small class="text-white-50">ID: #@item.IdUsuario</small>
                                         </div>
                                     </div>
                                 </td>
-                                <td class="text-dark small fw-semibold">@item.Correo</td>
-                                <td><span class="badge bg-dark px-2 py-1"><i class="bi bi-geo-alt-fill text-danger me-1"></i>@(item.Ciudad ?? "N/A")</span></td>
-                                <td class="text-center">
+                                <td class="text-white small fw-semibold" style="background-color: #161618 !important;">@item.Correo</td>
+                                <td style="background-color: #161618 !important;"><span class="badge bg-dark px-2 py-1"><i class="bi bi-geo-alt-fill text-danger me-1"></i>@(item.Ciudad ?? "N/A")</span></td>
+                                <td class="text-center" style="background-color: #161618 !important;">
                                     @if (item.RolId == 1)
                                     {
                                         <span class="badge badge-admin px-3 py-2">
@@ -310,7 +332,7 @@
                                         </span>
                                     }
                                 </td>
-                                <td class="text-center">
+                                <td class="text-center" style="background-color: #161618 !important;">
                                     @if (item.IdUsuario != uId)
                                     {
                                         <div class="d-flex justify-content-center gap-2">
@@ -396,35 +418,35 @@
     @* 🟢 LÓGICA DE ALERTAS AUTOMÁTICAS 🟢 *@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            @if (TempData["Success"] != null)
-            {
-                    <text>
-                    Swal.fire({
-                        icon: 'success',
-                        title: '¡Actualizado!',
-                        text: '@TempData["Success"]',
-                        background: '#121216',
-                        color: '#fff',
-                        confirmButtonColor: '#00d2ff',
-                        timer: 3000,
-                        showConfirmButton: false
-                    });
-                    </text>
-            }
+        @if (TempData["Success"] != null)
+        {
+            <text>
+                Swal.fire({
+                icon: 'success',
+                title: '¡Actualizado!',
+                text: '@TempData["Success"]',
+                background: '#121216',
+                color: '#fff',
+                confirmButtonColor: '#00d2ff',
+                timer: 3000,
+                showConfirmButton: false
+                });
+            </text>
+        }
 
-            @if (TempData["Error"] != null)
-            {
-                    <text>
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Denegado',
-                        text: '@TempData["Error"]',
-                        background: '#121216',
-                        color: '#fff',
-                        confirmButtonColor: '#dc3545'
-                    });
-                    </text>
-            }
+        @if (TempData["Error"] != null)
+        {
+            <text>
+                Swal.fire({
+                icon: 'error',
+                title: 'Denegado',
+                text: '@TempData["Error"]',
+                background: '#121216',
+                color: '#fff',
+                confirmButtonColor: '#dc3545'
+                });
+            </text>
+        }
         });
     </script>
 </body>

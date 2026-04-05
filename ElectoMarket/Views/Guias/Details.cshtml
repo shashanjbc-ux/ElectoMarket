@@ -1,0 +1,203 @@
+﻿@model ElectoMarket.Models.Guia
+@using Microsoft.AspNetCore.Http
+
+@{
+    ViewData["Title"] = Model.Titulo;
+    int? miId = Context.Session.GetInt32("UsuarioId");
+}
+
+<style>
+    /* 🎨 Estilo Cian Tech para Visualización */
+    :root {
+        --acento-ver: #00d2ff; /* Cian Neón */
+    }
+
+    body {
+        background-color: #0F0F10;
+        color: #FFFFFF;
+    }
+
+    /* Contenedor del Reproductor */
+    .player-panel {
+        background: #111622;
+        border: 2px solid var(--acento-ver);
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 0 30px rgba(0, 210, 255, 0.2);
+    }
+
+    /* Forzar ratio 16:9 para el video */
+    .video-wrapper {
+        position: relative;
+        padding-bottom: 56.25%; /* 16:9 */
+        height: 0;
+        background: #000;
+    }
+
+        .video-wrapper iframe, .video-wrapper video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+    .info-panel {
+        background: rgba(18, 18, 22, 0.8);
+        border-radius: 20px;
+        padding: 30px;
+        margin-top: 20px;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    /* 📅 Rediseño de la Fecha "Cyber-Badge" */
+    .badge-date {
+        background: linear-gradient(135deg, rgba(0, 210, 255, 0.1), rgba(0, 210, 255, 0.05));
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(0, 210, 255, 0.3);
+        color: #00d2ff;
+        padding: 8px 18px;
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-width: 80px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3), inset 0 0 10px rgba(0, 210, 255, 0.1);
+        transition: 0.3s ease;
+    }
+
+        .badge-date:hover {
+            transform: translateY(-3px);
+            border-color: #00d2ff;
+            box-shadow: 0 8px 25px rgba(0, 210, 255, 0.3);
+        }
+
+        .badge-date .day {
+            font-size: 1.4rem;
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 2px;
+        }
+
+        .badge-date .month-year {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.8;
+        }
+
+    .time-ago {
+        font-size: 0.85rem;
+        color: #8b9bb4;
+        font-style: italic;
+    }
+
+    .description-text {
+        color: #b0b0b0;
+        line-height: 1.6;
+        font-size: 1.1rem;
+        white-space: pre-line;
+    }
+
+    .btn-return {
+        background: transparent;
+        color: #FFFFFF;
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 50px;
+        padding: 10px 25px;
+        transition: 0.3s;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+        .btn-return:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: var(--acento-ver);
+            color: var(--acento-ver);
+        }
+</style>
+
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            
+            @* 🟢 REPRODUCTOR DE VIDEO 🟢 *@
+            <div class="player-panel shadow-lg mb-4">
+                <div class="video-wrapper">
+                    @if (Model.VideoUrl.Contains("youtube.com") || Model.VideoUrl.Contains("youtu.be"))
+                    {
+                        var videoId = "";
+                        if (Model.VideoUrl.Contains("v="))
+                        {
+                            videoId = Model.VideoUrl.Split("v=")[1].Split("&")[0];
+                        }
+                        else
+                        {
+                            videoId = Model.VideoUrl.Split("/").Last();
+                        }
+                        <iframe src="https://www.youtube.com/embed/@videoId" allowfullscreen></iframe>
+                    }
+                    else
+                    {
+                        <video controls controlsList="nodownload">
+                            <source src="@Model.VideoUrl" type="video/mp4">
+                            Tu navegador no soporta la reproducción de videos.
+                        </video>
+                    }
+                </div>
+            </div>
+
+            @* 🟢 PANEL DE INFORMACIÓN 🟢 *@
+            <div class="info-panel">
+                
+                @* 🕒 Lógica de Encabezado y Tiempo Transcurrido *@
+                <div class="d-flex justify-content-between align-items-start mb-4">
+                    <div>
+                        <h1 class="fw-bold text-white mb-1">@Model.Titulo</h1>
+                        @{
+                            var diferencia = DateTime.Now - Model.FechaPublicacion;
+                            string tiempoTranscurrido;
+                            if (diferencia.TotalDays >= 1) tiempoTranscurrido = $"Publicado hace {(int)diferencia.TotalDays} días";
+                            else if (diferencia.TotalHours >= 1) tiempoTranscurrido = $"Publicado hace {(int)diferencia.TotalHours} horas";
+                            else tiempoTranscurrido = "Publicado hace unos momentos";
+                        }
+                        <span class="time-ago"><i class="bi bi-clock-history me-1"></i> @tiempoTranscurrido</span>
+                    </div>
+
+                    @* 🗓️ Badge de Fecha Mejorado *@
+                    <div class="badge-date">
+                        <span class="day">@Model.FechaPublicacion.ToString("dd")</span>
+                        <span class="month-year">@Model.FechaPublicacion.ToString("MMM, yyyy")</span>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center mb-4">
+                    <img src="@(string.IsNullOrEmpty(Model.Usuario.FotoPerfilUrl) ? "/imagenes/placeholder-perfil.png" : Model.Usuario.FotoPerfilUrl)"
+                         style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--acento-ver);" class="me-3">
+                    <div>
+                        <span class="text-white-50 small">Publicado por:</span>
+                        <div class="fw-bold text-white">@Model.Usuario.Nombre</div>
+                    </div>
+                </div>
+
+                <hr style="border-color: rgba(255,255,255,0.1);">
+
+                <div class="mt-4">
+                    <h5 class="text-white fw-bold mb-3"><i class="bi bi-info-circle me-2 text-info"></i> Acerca de este tutorial</h5>
+                    <div class="description-text">
+                        @Model.Descripcion
+                    </div>
+                </div>
+
+                <div class="mt-5 pt-4 border-top border-secondary">
+                    <a asp-action="Index" class="btn-return fw-bold">
+                        <i class="bi bi-arrow-left me-2"></i> Volver a Tutoriales
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

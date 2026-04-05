@@ -130,9 +130,14 @@
                     <span class="text-white fw-bold fs-5">ElectroMarket</span>
                 </a>
                 
-                <div class="ms-5 d-flex gap-4">
+                <div class="ms-5 d-flex gap-4 align-items-center">
                     <a asp-controller="Productos" asp-action="Index" class="text-white text-decoration-none small fw-bold hover-white"><i class="bi bi-shop me-1"></i> Catálogo</a>
                     <a asp-controller="Comparacion" asp-action="Index" class="text-white-50 text-decoration-none small fw-bold hover-white"><i class="bi bi-arrow-left-right me-1"></i> Versus Tech</a>
+                    
+                    @* 🎬 BOTÓN DE TUTORIALES *@
+                    <a asp-controller="Guias" asp-action="Index" class="text-white-50 text-decoration-none small fw-bold hover-white d-flex align-items-center" style="transition: 0.3s;" onmouseover="this.style.color='#00ff88'; this.style.textShadow='0 0 10px #00ff88';" onmouseout="this.style.color='rgba(255,255,255,0.5)'; this.style.textShadow='none';">
+                        <i class="bi bi-play-btn-fill me-1" style="color: #00ff88; text-shadow: 0 0 5px rgba(0,255,136,0.5);"></i> Tutoriales
+                    </a>
                     
                     @if (esAdmin) { 
                         <a asp-controller="Home" asp-action="Index" class="text-white-50 text-decoration-none small fw-bold hover-white"><i class="bi bi-shield-lock me-1"></i> Inicio</a>

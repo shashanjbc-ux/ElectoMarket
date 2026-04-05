@@ -1,0 +1,161 @@
+﻿@model ElectoMarket.Models.Guia
+
+@{
+    ViewData["Title"] = "Editar Tutorial";
+}
+
+<style>
+    /* 🎨 Estilo Púrpura Tech para Edición */
+    :root {
+        --acento-edit: #7c4dff; /* Púrpura Neón */
+    }
+
+    body {
+        background-color: #0F0F10;
+        color: #FFFFFF;
+    }
+
+    .edit-panel {
+        background: rgba(18, 18, 22, 0.85);
+        backdrop-filter: blur(20px);
+        border: 2px solid var(--acento-edit);
+        border-radius: 24px;
+        box-shadow: 0 15px 35px rgba(124, 77, 255, 0.2);
+        padding: 40px;
+        position: relative;
+        overflow: hidden;
+    }
+
+        /* Brillo de fondo */
+        .edit-panel::after {
+            content: "";
+            position: absolute;
+            top: -50px;
+            left: -50px;
+            width: 150px;
+            height: 150px;
+            background: var(--acento-edit);
+            filter: blur(100px);
+            opacity: 0.1;
+            z-index: -1;
+        }
+
+    .form-label-tech {
+        color: rgba(255,255,255,0.7);
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .form-control-tech {
+        background-color: rgba(0,0,0,0.3) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        color: white !important;
+        border-radius: 12px;
+        padding: 12px 15px;
+        transition: 0.3s;
+    }
+
+        .form-control-tech:focus {
+            border-color: var(--acento-edit) !important;
+            box-shadow: 0 0 15px rgba(124, 77, 255, 0.3) !important;
+            background-color: rgba(0,0,0,0.5) !important;
+        }
+
+    .btn-save-neon {
+        background: linear-gradient(135deg, var(--acento-edit), #6200ea);
+        color: white;
+        border: none;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border-radius: 50px;
+        padding: 12px 30px;
+        transition: 0.3s;
+        box-shadow: 0 5px 15px rgba(124, 77, 255, 0.3);
+    }
+
+        .btn-save-neon:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(124, 77, 255, 0.5);
+            color: white;
+        }
+
+    .btn-back-tech {
+        background: transparent;
+        color: rgba(255,255,255,0.6);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 50px;
+        padding: 12px 25px;
+        transition: 0.3s;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+        .btn-back-tech:hover {
+            background: rgba(255,255,255,0.05);
+            color: white;
+            border-color: rgba(255,255,255,0.5);
+        }
+</style>
+
+<div class="container mt-5 mb-5 d-flex justify-content-center">
+    <div class="col-lg-8 edit-panel shadow-lg">
+        
+        <div class="d-flex align-items-center mb-5 border-bottom border-secondary pb-3">
+            <i class="bi bi-pencil-square fs-1 me-3" style="color: var(--acento-edit); text-shadow: 0 0 15px var(--acento-edit);"></i>
+            <div>
+                <h1 class="fw-bold m-0 text-white">Modificar <span style="color: var(--acento-edit);">Tutorial</span></h1>
+                <p class="text-white-50 m-0">Actualiza la información de tu video para mantenerlo al día</p>
+            </div>
+        </div>
+
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            
+            @* 🔐 CAMPOS OCULTOS CRÍTICOS *@
+            <input type="hidden" asp-for="IdGuia" />
+            <input type="hidden" asp-for="IdUsuario" />
+            <input type="hidden" asp-for="FechaPublicacion" />
+
+            <div class="row g-4">
+                @* Título *@
+                <div class="col-md-12">
+                    <label asp-for="Titulo" class="form-label-tech"><i class="bi bi-type me-1"></i> Título del Video</label>
+                    <input asp-for="Titulo" class="form-control-tech w-100" />
+                    <span asp-validation-for="Titulo" class="text-danger small"></span>
+                </div>
+
+                @* URL del Video *@
+                <div class="col-md-12">
+                    <label asp-for="VideoUrl" class="form-label-tech"><i class="bi bi-link-45deg me-1"></i> Enlace del Video (YouTube / Local)</label>
+                    <input asp-for="VideoUrl" class="form-control-tech w-100" />
+                    <span asp-validation-for="VideoUrl" class="text-danger small"></span>
+                </div>
+
+                @* Descripción *@
+                <div class="col-md-12">
+                    <label asp-for="Descripcion" class="form-label-tech"><i class="bi bi-text-paragraph me-1"></i> Descripción Breve</label>
+                    <textarea asp-for="Descripcion" class="form-control-tech w-100" rows="5"></textarea>
+                    <span asp-validation-for="Descripcion" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mt-5 pt-4 border-top border-secondary">
+                <a asp-action="Index" class="btn btn-back-tech fw-bold">
+                    <i class="bi bi-arrow-left me-1"></i> Cancelar y Volver
+                </a>
+                <button type="submit" class="btn btn-save-neon fw-bold">
+                    <i class="bi bi-save2-fill me-2"></i> Guardar Cambios
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

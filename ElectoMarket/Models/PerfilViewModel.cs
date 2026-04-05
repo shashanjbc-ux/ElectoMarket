@@ -1,5 +1,4 @@
-﻿using ElectoMarket.Entities;
-using ElectoMarket.Models; // 👈 ¡Esta es la línea clave!
+﻿using ElectoMarket.Models; // 👈 ¡Esta es la línea clave!
 using System.Collections.Generic;
 
 namespace ElectoMarket.Models // (O el namespace que estés usando para tus ViewModels)
