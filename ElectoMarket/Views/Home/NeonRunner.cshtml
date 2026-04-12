@@ -1,0 +1,63 @@
+﻿@using Microsoft.AspNetCore.Http
+@{ Layout = null; bool esInvitado = Context.Session.GetInt32("UsuarioId") == null; }
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <title>Neon Runner</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #08080a; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        canvas { background: #050508; border: 2px solid #00d2ff; border-radius: 10px; border-bottom: 4px solid #00d2ff; box-shadow: 0 5px 25px rgba(0, 210, 255, 0.2); }
+        .score { font-size: 2rem; font-weight: 800; color: #00d2ff; margin-bottom: 10px; text-shadow: 0 0 10px rgba(0, 210, 255, 0.5); }
+        a.btn-volver { color: #ff00ff; text-decoration: none; margin-top: 15px; font-weight: bold; border: 1px solid #ff00ff; padding: 8px 20px; border-radius: 8px; transition: 0.3s; }
+        a.btn-volver:hover { background: #ff00ff; color: white; box-shadow: 0 0 15px rgba(255, 0, 255, 0.4); }
+    </style>
+</head>
+<body>
+    <div class="score">PTS: <span id="score">0</span></div>
+    <canvas id="game" width="600" height="200"></canvas>
+    <p class="text-white-50 mt-3 small">Presiona ESPACIO o Flecha Arriba para saltar.</p>
+    <a href="/Home/Arcade" class="btn-volver">Volver al Arcade</a>
+
+    <script>
+        const cvs = document.getElementById('game'); const ctx = cvs.getContext('2d'); const scoreEl = document.getElementById('score');
+        let player = { x: 50, y: 170, w: 30, h: 30, dy: 0, jump: -11.5, gravity: 0.6, grounded: true };
+        let obstacles = []; let score = 0; let speed = 5.5; let frameCount = 0; let gameOver = false; let obstacleTimer = 0;
+
+        document.addEventListener("keydown", e => { if ((e.code === "Space" || e.code === "ArrowUp") && player.grounded && !gameOver) { player.dy = player.jump; player.grounded = false; } if (e.code === "Space" && gameOver) reset(); if(["Space","ArrowUp","ArrowDown"].indexOf(e.code) > -1) { e.preventDefault(); } });
+        function reset() { obstacles = []; score = 0; speed = 5.5; frameCount = 0; gameOver = false; player.y = 170; player.dy = 0; obstacleTimer = 0; scoreEl.innerText = score; loop(); }
+        function update() {
+            if (gameOver) return;
+            frameCount++; player.y += player.dy; player.dy += player.gravity;
+            if (player.y >= 170) { player.y = 170; player.grounded = true; player.dy = 0; }
+            obstacleTimer--;
+            if (obstacleTimer <= 0) { let obsW = 20 + Math.random() * 10; let obsH = 30 + Math.random() * 25; obstacles.push({ x: 600, y: 200 - obsH, w: obsW, h: obsH }); obstacleTimer = Math.floor(Math.random() * (90 - 45)) + 45; }
+            for (let i = 0; i < obstacles.length; i++) { let obs = obstacles[i]; obs.x -= speed; let margin = 4; if (player.x + margin < obs.x + obs.w && player.x + player.w - margin > obs.x && player.y + margin < obs.y + obs.h && player.y + player.h - margin > obs.y) gameOver = true; }
+            obstacles = obstacles.filter(obs => obs.x + obs.w > 0); 
+            if (frameCount % 30 === 0) { score++; scoreEl.innerText = score; if (score % 20 === 0 && speed < 11) speed += 0.5; }
+        }
+        function drawRect(x, y, w, h, color) { ctx.fillStyle = color; ctx.shadowBlur=15; ctx.shadowColor=color; ctx.fillRect(x, y, w, h); ctx.shadowBlur=0; }
+        function draw() {
+            ctx.clearRect(0,0, cvs.width, cvs.height); drawRect(player.x, player.y, player.w, player.h, "#00ff88"); obstacles.forEach(obs => drawRect(obs.x, obs.y, obs.w, obs.h, "#ff2a55")); 
+            if (gameOver) { ctx.fillStyle="white"; ctx.font="bold 28px Arial"; ctx.shadowBlur = 10; ctx.shadowColor = "red"; ctx.fillText("¡CRASH! Presiona Espacio", 120, 100); ctx.shadowBlur = 0; }
+        }
+        function loop() { update(); draw(); if(!gameOver) requestAnimationFrame(loop); } loop();
+    </script>
+
+    @if(esInvitado) {
+        <div style="position: fixed; top: 20px; right: 20px; background: rgba(255, 74, 104, 0.1); border: 1px solid #ff4a68; color: #ff4a68; padding: 8px 15px; border-radius: 50px; font-weight: bold; font-family: monospace; z-index: 9999; box-shadow: 0 0 10px rgba(255,74,104,0.3); backdrop-filter: blur(5px);">⏱️ Prueba: <span id="timeRemaining">15:00</span></div>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            let timeRemaining = localStorage.getItem('arcadeTimeLeft');
+            if (timeRemaining === null) { timeRemaining = 15 * 60; } else { timeRemaining = parseInt(timeRemaining); }
+            let timerInterval = setInterval(updateTimer, 1000); 
+            function updateTimer() {
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval); document.getElementById('timeRemaining').innerText = "00:00"; if (typeof gameOver !== 'undefined') gameOver = true; 
+                    Swal.fire({ title: '<span style="color: #ff4a68; font-weight: 900; font-size: 2rem;">¡TIEMPO AGOTADO!</span>', html: '<span style="color: #ccc; font-size: 1.1rem;">Tu pase de prueba de 15 minutos ha terminado.<br><br><b style="color: white;">¡Regístrate GRATIS para jugar sin límites!</b><br><br><small style="color: #ff4a68;">Saliendo de la simulación en 30 segundos...</small></span>', icon: 'warning', background: '#161618', color: '#fff', allowOutsideClick: false, allowEscapeKey: false, showCancelButton: true, confirmButtonColor: '#7c4dff', cancelButtonColor: '#2d2d30', confirmButtonText: '¡Registrarme Ahora!', cancelButtonText: 'Volver a la Tienda', backdrop: `rgba(255, 74, 104, 0.2)`, timer: 30000, timerProgressBar: true }).then((result) => { if (result.isConfirmed) { window.location.href = '/Usuarios/Register'; } else { window.location.href = '/Home/Index'; } }); return;
+                }
+                let m = Math.floor(timeRemaining / 60); let s = timeRemaining % 60; document.getElementById('timeRemaining').innerText = (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s; timeRemaining--; localStorage.setItem('arcadeTimeLeft', timeRemaining);
+            } updateTimer();
+        </script>
+    } else { <div style="position: fixed; top: 20px; right: 20px; background: rgba(0, 255, 136, 0.1); border: 1px solid #00ff88; color: #00ff88; padding: 8px 15px; border-radius: 50px; font-weight: bold; font-family: monospace; z-index: 9999; box-shadow: 0 0 10px rgba(0,255,136,0.3); backdrop-filter: blur(5px);">👑 PASE VIP: Ilimitado</div> }
+</body></html>

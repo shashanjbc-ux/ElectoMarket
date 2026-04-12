@@ -1,0 +1,262 @@
+﻿@model ElectoMarket.Models.Usuario
+@using Microsoft.AspNetCore.Http
+
+@{
+    Layout = null;
+    var uNombreSesion = Context.Session.GetString("UsuarioNombre") ?? "Admin";
+    var uFotoSesion = Context.Session.GetString("UsuarioFoto");
+    var miRol = Context.Session.GetInt32("UsuarioRol");
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Eliminar Usuario - Seguridad ElectroMarket</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-dark: #0a0a0c;
+            --danger-neon: #ff3c3c;
+            --danger-glow: rgba(255, 60, 60, 0.3);
+            --glass-bg: rgba(20, 10, 10, 0.85);
+            --border-glass: rgba(255, 60, 60, 0.2);
+            --cyan-tech: #00d2ff;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: white;
+            font-family: 'Inter', system-ui, sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* --- FONDO ANIMADO DE ADVERTENCIA --- */
+        .tech-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+            background-image: 
+                radial-gradient(circle at 10% 10%, rgba(255, 60, 60, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 90% 90%, rgba(124, 77, 255, 0.05) 0%, transparent 40%);
+        }
+        .tech-bg::after {
+            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M50 0L50 100M0 50L100 50' stroke='rgba(255,60,60,0.03)' stroke-width='0.5'/%3E%3C/svg%3E");
+        }
+
+        /* --- NAVBAR --- */
+        .navbar-custom {
+            background: rgba(10, 10, 12, 0.95);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--border-glass);
+            padding: 15px 0;
+        }
+
+        /* --- TARJETA DE ELIMINACIÓN --- */
+        .delete-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(30px);
+            border: 1px solid var(--border-glass);
+            border-radius: 28px;
+            max-width: 750px;
+            width: 95%;
+            margin: auto;
+            overflow: hidden;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.8), 0 0 30px var(--danger-glow);
+            animation: cardSlideIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .header-danger {
+            background: linear-gradient(180deg, rgba(255, 60, 60, 0.15) 0%, transparent 100%);
+            padding: 40px 20px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-glass);
+        }
+
+        .warning-pulse {
+            font-size: 4rem;
+            color: var(--danger-neon);
+            animation: pulse 2s infinite;
+            filter: drop-shadow(0 0 15px var(--danger-neon));
+        }
+
+        /* --- PERFIL DEL USUARIO A BORRAR --- */
+        .user-preview {
+            display: flex;
+            align-items: center;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.02);
+            margin: 20px 40px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .user-avatar-lg {
+            width: 110px; height: 110px;
+            border-radius: 50%;
+            border: 3px solid var(--danger-neon);
+            padding: 3px;
+            object-fit: cover;
+            box-shadow: 0 0 20px var(--danger-glow);
+        }
+
+        .data-grid {
+            padding: 0 40px 30px 40px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            text-align: left;
+        }
+
+        .data-item {
+            background: rgba(0,0,0,0.3);
+            padding: 12px 18px;
+            border-radius: 12px;
+            border-left: 3px solid var(--danger-neon);
+        }
+
+        .data-label { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+        .data-value { font-size: 1rem; font-weight: 600; color: #eee; }
+
+        /* --- BOTONES --- */
+        .btn-actions {
+            padding: 0 40px 40px 40px;
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+        }
+
+        .btn-cancel {
+            background: transparent;
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 15px;
+            padding: 15px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: 0.3s;
+            text-align: center;
+        }
+        .btn-cancel:hover { background: rgba(255,255,255,0.1); color: white; border-color: white; }
+
+        .btn-delete-final {
+            background: linear-gradient(135deg, #ff3c3c, #990000);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 15px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.3s;
+            box-shadow: 0 10px 25px rgba(255, 60, 60, 0.4);
+        }
+        .btn-delete-final:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(255, 60, 60, 0.6);
+            filter: brightness(1.2);
+        }
+
+        /* --- ANIMACIONES --- */
+        @@keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @@keyframes cardSlideIn {
+            from { opacity: 0; transform: translateY(40px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="tech-bg"></div>
+
+    @* NAVBAR *@
+    <nav class="navbar-custom">
+        <div class="container d-flex justify-content-between align-items-center">
+            <a asp-controller="Home" asp-action="Index" class="d-flex align-items-center text-decoration-none">
+                <img src="/imagenes/Logo/Logo.jpg" alt="Logo" style="height: 45px; width: 45px; border-radius: 50%; border: 1px solid var(--border-glass);">
+                <span class="text-white fw-bold fs-4 ms-3">ElectroMarket <span class="text-danger small ms-2">| ADMIN</span></span>
+            </a>
+            
+            <div class="d-flex align-items-center gap-3">
+                <div class="text-end d-none d-sm-block">
+                    <div class="fw-bold text-white small">@uNombreSesion</div>
+                    <div class="text-danger" style="font-size: 10px; font-weight: 800; letter-spacing: 1px;">AUTORIZADO</div>
+                </div>
+                <img src="@(!string.IsNullOrEmpty(uFotoSesion) ? uFotoSesion : "/imagenes/placeholder-perfil.png")" 
+                     class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover; border: 2px solid var(--danger-neon);">
+            </div>
+        </div>
+    </nav>
+
+    <div class="container flex-grow-1 d-flex">
+        <div class="delete-card shadow-lg">
+            
+            <div class="header-danger">
+                <i class="bi bi-shield-slash warning-pulse mb-3"></i>
+                <h2 class="fw-black text-white">TERMINAR CUENTA DE USUARIO</h2>
+                <div class="badge bg-danger px-3 py-2 mt-2">ACCIÓN CRÍTICA IRREVERSIBLE</div>
+            </div>
+
+            <div class="user-preview shadow-sm">
+                <img src="@(!string.IsNullOrEmpty(Model.FotoPerfilUrl) ? Model.FotoPerfilUrl : "/imagenes/placeholder-perfil.png")" 
+                     alt="@Model.Nombre" class="user-avatar-lg">
+                <div class="ms-4">
+                    <h3 class="fw-bold mb-1 text-white">@Model.Nombre</h3>
+                    <div class="text-danger fw-bold"><i class="bi bi-envelope-at me-2"></i>@Model.Correo</div>
+                    <div class="text-white-50 small mt-1">ID de Sistema: #@Model.IdUsuario</div>
+                </div>
+            </div>
+
+            <div class="data-grid">
+                <div class="data-item">
+                    <div class="data-label">Ciudad</div>
+                    <div class="data-value">@(Model.Ciudad ?? "No especificada")</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Teléfono</div>
+                    <div class="data-value">@(Model.Telefono ?? "N/A")</div>
+                </div>
+            </div>
+
+            <div class="px-5 mb-5 text-center">
+                <div class="p-3 rounded-4" style="background: rgba(255, 60, 60, 0.08); border: 1px dashed var(--danger-neon);">
+                    <p class="m-0 text-white-50" style="font-size: 0.95rem;">
+                        <i class="bi bi-info-circle-fill text-danger me-2"></i>
+                        Confirmar esta acción eliminará permanentemente al usuario y **TODOS sus registros**: 
+                        Productos en catálogo, hilos de Chat y Mensajes enviados.
+                    </p>
+                </div>
+            </div>
+
+            <div class="btn-actions">
+                <a asp-action="ListadoUsuarios" class="btn-cancel">
+                    <i class="bi bi-arrow-left me-2"></i>Volver
+                </a>
+
+                @* 🟢 FORMULARIO CONECTADO AL CONTROLADOR 🟢 *@
+                <form asp-action="EliminarConfirmado" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.IdUsuario" />
+                    <button type="submit" class="btn-delete-final w-100">
+                        <i class="bi bi-person-x-fill me-2"></i>Borrar Usuario y Datos
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

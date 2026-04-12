@@ -1,0 +1,277 @@
+﻿@{
+    Layout = null; // Diseño independiente oscuro premium
+}
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{    
+    var uId = Context.Session.GetInt32("UsuarioId");
+    var uNombre = Context.Session.GetString("UsuarioNombre") ?? "Invitado";
+    var uFoto = Context.Session.GetString("UsuarioFoto");
+    
+    // Validamos si es admin para mostrar las opciones en la navbar
+    int? miRol = HttpContextAccessor.HttpContext?.Session.GetInt32("UsuarioRol");
+    bool esAdmin = miRol == 1;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Conócenos - ElectroMarket</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-main: #08080a;
+            --bg-nav: rgba(10, 10, 12, 0.9);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --text-muted: #a1a1aa;
+            --morado: #7c4dff;
+            --morado-hover: #651fff;
+            --morado-glow: rgba(124, 77, 255, 0.25);
+            --cyan-glow: rgba(0, 210, 255, 0.15);
+            --cyan-neon: #00d2ff;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            font-family: 'Inter', system-ui, sans-serif;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        /* --- NAVBAR SUPERIOR PREMIUM --- */
+        .navbar-main {
+            background-color: var(--bg-nav);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .nav-link-tech {
+            color: rgba(255,255,255,0.6);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: 0.3s;
+            display: flex; align-items: center;
+        }
+        .nav-link-tech:hover { color: var(--cyan-neon); text-shadow: 0 0 10px var(--cyan-neon); }
+        .hover-white:hover { color: white !important; transition: 0.2s; }
+        
+        .btn-auth-outline { border: 1px solid var(--morado); color: var(--morado); border-radius: 20px; padding: 6px 22px; text-decoration: none; font-size: 0.9rem; transition: 0.3s; }
+        .btn-auth-outline:hover { background: var(--morado); color: white; box-shadow: 0 0 15px var(--morado-glow); }
+
+        /* --- HERO SECCIÓN --- */
+        .hero-section {
+            padding: 120px 0 80px 0;
+            text-align: center;
+            position: relative;
+        }
+        
+        .glow-orb-1 {
+            position: absolute; top: 10%; left: 20%; width: 400px; height: 400px;
+            background: radial-gradient(circle, var(--morado-glow) 0%, transparent 70%);
+            z-index: -1; filter: blur(50px); animation: float 6s ease-in-out infinite;
+        }
+        .glow-orb-2 {
+            position: absolute; bottom: -10%; right: 20%; width: 350px; height: 350px;
+            background: radial-gradient(circle, var(--cyan-glow) 0%, transparent 70%);
+            z-index: -1; filter: blur(50px); animation: float 8s ease-in-out infinite reverse;
+        }
+
+        @@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-30px); }
+    100% { transform: translateY(0px); }
+}
+
+        .text-gradient {
+            background: linear-gradient(135deg, #7c4dff 0%, #00d2ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 900;
+        }
+
+        .hero-title { font-size: 4.5rem; font-weight: 800; letter-spacing: -2px; margin-bottom: 25px; line-height: 1.1; }
+        .hero-subtitle { font-size: 1.3rem; color: var(--text-muted); max-width: 750px; margin: 0 auto; line-height: 1.7; font-weight: 300; }
+
+        /* --- TARJETAS GLASSMORPHISM --- */
+        .glass-card {
+            background: rgba(28, 28, 31, 0.4);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(124, 77, 255, 0.15);
+            border-radius: 24px;
+            padding: 40px 30px;
+            text-align: center;
+            height: 100%;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            color: #ffffff !important;
+        }
+        .glass-card h4 { color: #ffffff !important; font-weight: 700; }
+        .glass-card .text-muted.small { color: rgba(255, 255, 255, 0.9) !important; }
+
+        .icon-wrapper {
+            width: 80px; height: 80px; margin: 0 auto 25px auto;
+            background: linear-gradient(135deg, rgba(124, 77, 255, 0.2), rgba(0, 210, 255, 0.1));
+            border-radius: 20px; display: flex; align-items: center; justify-content: center;
+            font-size: 2.2rem; color: #b388ff; border: 1px solid rgba(124, 77, 255, 0.3);
+        }
+
+        /* --- SECCIÓN CTA --- */
+        .cta-section {
+            margin-top: 100px; padding: 100px 0;
+            background: linear-gradient(to bottom, transparent, rgba(124, 77, 255, 0.05));
+            border-top: 1px solid rgba(124, 77, 255, 0.1);
+            text-align: center;
+        }
+        .btn-action {
+            padding: 16px 40px; border-radius: 50px; font-weight: 600; font-size: 1.1rem;
+            text-decoration: none; transition: all 0.3s; display: inline-flex; align-items: center; justify-content: center;
+            width: 280px; 
+        }
+        .btn-primary-custom {
+            background: linear-gradient(135deg, var(--morado), #00d2ff); color: white; border: none;
+            box-shadow: 0 10px 25px rgba(124, 77, 255, 0.4);
+        }
+        .btn-primary-custom:hover { transform: translateY(-3px); color: white; box-shadow: 0 15px 35px rgba(124, 77, 255, 0.6); }
+        
+        .btn-secondary-custom {
+            background-color: transparent; border: 2px solid rgba(255,255,255,0.2); color: white;
+        }
+        .btn-secondary-custom:hover { border-color: white; background: rgba(255,255,255,0.05); color: white; transform: translateY(-3px); }
+    </style>
+</head>
+<body>
+
+    @*  NAVBAR PREMIUM INYECTADA  *@
+    <nav class="navbar-main shadow-sm">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <a asp-controller="Home" asp-action="Index" class="d-flex align-items-center text-decoration-none">
+                    <img src="/imagenes/Logo/Logo.jpg" alt="Logo" style="height: 40px; width: 40px; border-radius: 50%;">
+                    <span class="text-white fw-bold fs-5 ms-2">ElectroMarket</span>
+                </a>
+                
+                <div class="ms-5 d-flex gap-4">
+                    <a asp-controller="Productos" asp-action="Index" class="nav-link-tech">
+                        <i class="bi bi-shop me-1"></i> Catálogo
+                    </a>
+                    
+                    @if (esAdmin) { 
+                        <a asp-controller="Home" asp-action="Index" class="nav-link-tech">
+                            <i class="bi bi-shield-lock me-1"></i> Panel Admin
+                        </a>
+                        <a asp-controller="Usuarios" asp-action="ListadoUsuarios" class="nav-link-tech">
+                            <i class="bi bi-people me-1"></i> Gestión Usuarios
+                        </a>
+                        <a asp-controller="Productos" asp-action="Gestionar" class="nav-link-tech">
+                            <i class="bi bi-box-seam me-1"></i> Gestión Productos
+                        </a>
+                    }
+                </div>
+            </div>
+            
+            <div class="d-flex align-items-center gap-4">
+                @if (uId != null) {
+                    <a asp-controller="Chats" asp-action="Index" class="text-white opacity-75 fs-5 hover-white" title="Mensajes">
+                        <i class="bi bi-chat-dots"></i>
+                    </a>
+                    
+                    <a asp-controller="Usuarios" asp-action="Perfil" class="d-flex align-items-center text-decoration-none">
+                        <img src="@(!string.IsNullOrEmpty(uFoto) ? uFoto : "/imagenes/placeholder-perfil.png")" 
+                             class="rounded-circle border border-secondary me-2" style="width: 35px; height: 35px; object-fit: cover;">
+                        <span class="text-white-50 small hover-white">
+                            Hola, <span class="fw-bold text-white">@uNombre</span>
+                            @if (esAdmin) { 
+                                <span class="text-warning fw-bold ms-1" style="font-size: 0.85rem;"><i class="bi bi-shield-fill text-warning"></i> (Admin)</span> 
+                            }
+                        </span>
+                    </a>
+                    
+                    <form asp-controller="Usuarios" asp-action="Logout" method="post" class="m-0 ms-2">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">Salir</button>
+                    </form>
+                } else {
+                    <a asp-controller="Usuarios" asp-action="Login" class="nav-link-tech me-3">Ingresar</a>
+                    <a asp-controller="Usuarios" asp-action="Register" class="btn-auth-outline">Registrarse</a>
+                }
+            </div>
+        </div>
+    </nav>
+
+    @* HERO SECTION *@
+    <main class="container hero-section">
+        <div class="glow-orb-1"></div>
+        <div class="glow-orb-2"></div>
+        <h1 class="hero-title">Dando <span class="text-gradient">nueva vida</span><br>a la tecnología.</h1>
+        <p class="hero-subtitle mt-4">No lo tires, reinvéntalo. Construimos la comunidad más grande de entusiastas tecnológicos dedicada a comprar, vender y reparar equipos.</p>
+    </main>
+
+    @* TARJETAS *@
+    <section class="container mt-2">
+        <div class="row g-5">
+            <div class="col-md-4">
+                <div class="glass-card">
+                    <div class="icon-wrapper"><i class="bi bi-currency-exchange"></i></div>
+                    <h4 class="mb-3">Economía Justa</h4>
+                    <p class="text-muted small fs-6">Recupera parte de tu inversión vendiendo lo que ya no usas.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="glass-card">
+                    <div class="icon-wrapper"><i class="bi bi-cpu"></i></div>
+                    <h4 class="mb-3">Cultura Maker</h4>
+                    <p class="text-muted small fs-6">Conecta con expertos dispuestos a reparar equipos dañados.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="glass-card">
+                    <div class="icon-wrapper"><i class="bi bi-globe-americas"></i></div>
+                    <h4 class="mb-3">Impacto Real</h4>
+                    <p class="text-muted small fs-6">Juntos, evitamos que miles de componentes terminen en vertederos.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    @* SECCIÓN CTA CORREGIDA Y CENTRADA *@
+    <section class="cta-section">
+        <div class="container">
+            <h2 class="fw-bold mb-2 display-5 text-white">¿Listo para hacer el cambio?</h2>
+            <p class="text-white mb-5 fs-5 opacity-75">Únete a miles de usuarios que ya están transformando el mercado.</p>
+            
+            <div class="d-flex flex-column align-items-center gap-3">
+                <a asp-controller="Home" asp-action="Index" class="btn-action btn-secondary-custom">
+                    <i class="bi bi-arrow-left me-2"></i> Volver al Inicio
+                </a>
+
+                @if (uId == null)
+                {
+                    <a asp-controller="Usuarios" asp-action="Register" class="btn-action btn-primary-custom">
+                        Empieza Gratis <i class="bi bi-rocket-takeoff ms-2"></i>
+                    </a>
+                }
+                else
+                {
+                    <a asp-controller="Productos" asp-action="Index" class="btn-action btn-primary-custom">
+                        Explorar el Catálogo <i class="bi bi-arrow-right ms-2"></i>
+                    </a>
+                }
+            </div>
+        </div>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

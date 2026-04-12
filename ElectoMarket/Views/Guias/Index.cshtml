@@ -1,0 +1,278 @@
+﻿@model IEnumerable<ElectoMarket.Models.Guia>
+@using Microsoft.AspNetCore.Http
+
+@{
+    Layout = null; 
+    
+    var uId = Context.Session.GetInt32("UsuarioId");
+    var uNombre = Context.Session.GetString("UsuarioNombre") ?? "Invitado";
+    var uFoto = Context.Session.GetString("UsuarioFoto");
+    
+    var uRol = Context.Session.GetInt32("UsuarioRol");
+    bool esAdmin = (uRol == 1);
+    
+    string ExtraerYouTubeId(string url) {
+        if (string.IsNullOrEmpty(url)) return "";
+        if (url.Contains("v=")) return url.Split("v=")[1].Split('&')[0];
+        if (url.Contains("youtu.be/")) return url.Split("youtu.be/")[1].Split('?')[0];
+        return "";
+    }
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tutoriales - ElectroMarket</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #08080a;
+            --card-bg: #111114;
+            --cyan-neon: #00d2ff;
+            --morado-neon: #7c4dff;
+            --green-neon: #00ff88;
+            --yellow-warning: #ffcc00;
+        }
+
+        body { background-color: var(--bg-dark); color: white; font-family: 'Inter', sans-serif; margin: 0; min-height: 100vh; display: flex; flex-direction: column; }
+
+        /* --- NAVBAR --- */
+        .navbar-custom { padding: 15px 50px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.4); backdrop-filter: blur(10px); }
+        .nav-right { display: flex; align-items: center; gap: 12px; }
+        
+        .nav-profile-link { transition: 0.3s; padding: 5px 10px; border-radius: 20px; }
+        .nav-profile-link:hover { background: rgba(0, 210, 255, 0.1); }
+        .nav-avatar { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 2px solid transparent; transition: 0.3s; }
+        .nav-profile-link:hover .nav-avatar { border-color: var(--cyan-neon); transform: scale(1.05); }
+        
+        .btn-salir { background: transparent; color: #ff4d4d; border: 1px solid #ff4d4d; border-radius: 20px; padding: 4px 15px; text-decoration: none; font-size: 0.8rem; transition: 0.3s; }
+        .btn-salir:hover { background: #ff4d4d; color: white; }
+        
+        .btn-reg { background: var(--green-neon); color: black; border-radius: 20px; padding: 6px 20px; font-weight: bold; text-decoration: none; font-size: 0.85rem; transition: 0.3s; }
+        .btn-reg:hover { box-shadow: 0 0 15px rgba(0, 255, 136, 0.4); }
+        
+        .btn-ini { background: transparent; color: white; border: 1px solid var(--cyan-neon); border-radius: 20px; padding: 6px 20px; font-weight: bold; text-decoration: none; font-size: 0.85rem; transition: 0.3s; }
+        .btn-ini:hover { background: var(--cyan-neon); color: black; }
+        
+        .nav-links a { color: rgba(255,255,255,0.5); text-decoration: none; font-weight: bold; font-size: 0.9rem; transition: 0.3s; }
+        .nav-links a:hover { color: white; }
+        .nav-links .active { color: var(--green-neon) !important; }
+
+        /* --- 📊 ESTILOS DE ESTADÍSTICAS (AÑADIDO) 📊 --- */
+        .stats-container { display: flex; gap: 20px; margin-bottom: 40px; }
+
+        .stat-card {
+            flex: 1;
+            background: rgba(18, 18, 22, 0.6);
+            border: 1px solid rgba(0, 210, 255, 0.2);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            backdrop-filter: blur(15px);
+            transition: 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--cyan-neon);
+            box-shadow: 0 10px 25px rgba(0, 210, 255, 0.15);
+        }
+
+        .stat-icon {
+            width: 55px;
+            height: 55px;
+            border-radius: 14px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.6rem;
+            margin-right: 18px;
+        }
+
+        .stat-info h4 { margin: 0; font-size: 1.8rem; font-weight: 800; color: white; line-height: 1.2; }
+        .stat-info p { margin: 0; font-size: 0.75rem; color: rgba(255, 255, 255, 0.5); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; }
+
+        /* --- BARRA DE BÚSQUEDA --- */
+        .search-container { background: rgba(255,255,255,0.02); border: 1px solid rgba(0, 210, 255, 0.3); border-radius: 15px; padding: 15px; margin-bottom: 30px; }
+        .search-input { background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 10px; }
+        .search-input:focus { background: rgba(0,0,0,0.8); border-color: var(--cyan-neon); color: white; box-shadow: none; }
+        .btn-search { background: var(--cyan-neon); color: black; font-weight: bold; border-radius: 10px; transition: 0.3s; }
+        .btn-search:hover { box-shadow: 0 0 15px rgba(0, 210, 255, 0.4); }
+
+        /* --- ESTILOS DE LAS TARJETAS --- */
+        .premium-card { background-color: var(--card-bg); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 18px; overflow: hidden; transition: 0.3s; height: 100%; display: flex; flex-direction: column; }
+        .premium-card:hover { border-color: var(--cyan-neon); transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0, 210, 255, 0.15); }
+        
+        .premium-thumb { position: relative; height: 180px; display: block; border-bottom: 2px solid var(--cyan-neon); }
+        .premium-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .play-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 3rem; color: var(--green-neon); opacity: 0.8; transition: 0.3s; }
+        .premium-card:hover .play-overlay { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+        
+        .btn-outline-cyan { border: 1px solid var(--cyan-neon); color: var(--cyan-neon); border-radius: 10px; font-weight: bold; text-transform: uppercase; transition: 0.3s; text-decoration: none; text-align: center; padding: 8px;}
+        .btn-outline-cyan:hover { background: var(--cyan-neon); color: black; }
+
+        .btn-outline-warning-custom { border: 1px solid var(--yellow-warning); color: var(--yellow-warning); border-radius: 10px; font-weight: bold; text-transform: uppercase; transition: 0.3s; text-decoration: none; text-align: center; padding: 6px; font-size: 0.8rem; }
+        .btn-outline-warning-custom:hover { background: var(--yellow-warning); color: black; }
+
+        .btn-outline-danger-custom { background: transparent; border: 1px solid #ff4d4d; color: #ff4d4d; border-radius: 10px; font-weight: bold; text-transform: uppercase; transition: 0.3s; text-decoration: none; text-align: center; padding: 6px; font-size: 0.8rem; cursor: pointer; }
+        .btn-outline-danger-custom:hover { background: #ff4d4d; color: white; }
+    </style>
+</head>
+<body>
+
+    @Html.AntiForgeryToken()
+
+    <nav class="navbar-custom sticky-top z-3">
+        <div class="d-flex align-items-center">
+            <a asp-controller="Home" asp-action="Index" class="text-decoration-none d-flex align-items-center text-white">
+                <img src="/imagenes/Logo/Logo.jpg" style="height: 40px; border-radius: 50%;" class="me-2">
+                <span class="fw-bold fs-4">ElectroMarket</span>
+            </a>
+            <div class="nav-links ms-5 d-flex gap-4">
+                <a asp-controller="Productos" asp-action="Index">Catálogo</a>
+                <a asp-controller="Comparacion" asp-action="Index">Versus Tech</a>
+                <a asp-controller="Guias" asp-action="Index" class="active">Tutoriales</a>
+            </div>
+        </div>
+        
+        <div class="nav-right">
+            @if (uId != null)
+            {
+                <a asp-controller="Usuarios" asp-action="Perfil" class="d-flex align-items-center text-decoration-none nav-profile-link">
+                    <span class="text-white-50 small me-2">Hola, <b class="text-white">@uNombre</b></span>
+                    <img src="@(!string.IsNullOrEmpty(uFoto) ? uFoto : "/imagenes/placeholder-perfil.png")" class="nav-avatar">
+                </a>
+                
+                <form asp-controller="Usuarios" asp-action="Logout" method="post" class="m-0 ms-2">
+                    <button type="submit" class="btn-salir">Salir</button>
+                </form>
+            }
+            else
+            {
+                <a asp-controller="Usuarios" asp-action="Register" class="btn-reg">Registrarse</a>
+                <a asp-controller="Usuarios" asp-action="Login" class="btn-ini">Iniciar Sesión</a>
+            }
+        </div>
+    </nav>
+
+    <div class="container mt-5 mb-5 flex-grow-1">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="fw-bold text-white"><i class="bi bi-collection-play-fill me-2 text-info"></i> Catálogo de Guías</h4>
+            
+            @if (uId != null) {
+                <a asp-action="Create" class="btn btn-outline-success btn-sm rounded-pill fw-bold px-4 py-2">+ Nueva Guía</a>
+            }
+        </div>
+
+        @* 📊 DASHBOARD DE ESTADÍSTICAS 📊 *@
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-icon" style="color: var(--morado-neon); background: rgba(124, 77, 255, 0.1);">
+                    <i class="bi bi-journal-text"></i>
+                </div>
+                <div class="stat-info">
+                    <h4>@ViewBag.TotalGuias</h4>
+                    <p>Guías publicadas</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon" style="color: var(--cyan-neon); background: rgba(0, 210, 255, 0.1);">
+                    <i class="bi bi-eye-fill"></i>
+                </div>
+                <div class="stat-info">
+                    <h4>@ViewBag.MisVistas</h4>
+                    <p>Vistas en mis guías</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="search-container shadow-lg">
+            <form asp-action="Index" method="get" class="d-flex gap-3">
+                <input type="text" name="buscar" value="@ViewData["BuscarActual"]" class="form-control search-input" placeholder="🔎 Buscar tutorial por título o descripción..." />
+                <button type="submit" class="btn btn-search px-4">Buscar</button>
+                <a asp-action="Index" class="btn btn-outline-secondary rounded-3 px-4 d-flex align-items-center">Limpiar</a>
+            </form>
+        </div>
+
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            @if (!Model.Any()) {
+                <div class="col-12 text-center py-5">
+                    <h5 class="text-white-50">No se encontraron tutoriales con esa búsqueda.</h5>
+                </div>
+            }
+            @foreach (var guia in Model) {
+                <div class="col">
+                    <div class="premium-card shadow-lg">
+                        <a asp-action="Details" asp-route-id="@guia.IdGuia" class="premium-thumb">
+                            @{ var ytId = ExtraerYouTubeId(guia.VideoUrl); }
+                            <img src="https://img.youtube.com/vi/@ytId/hqdefault.jpg" alt="@guia.Titulo">
+                            <div class="play-overlay"><i class="bi bi-play-circle-fill"></i></div>
+                        </a>
+                        <div class="p-3 d-flex flex-column flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="fw-bold text-white m-0">@guia.Titulo</h6>
+                                <span class="badge bg-dark text-cyan-neon border border-info" style="font-size: 0.7rem;">
+                                    <i class="bi bi-eye me-1"></i> @guia.Vistas
+                                </span>
+                            </div>
+                            <p class="small text-white-50 text-truncate mb-3">@guia.Descripcion</p>
+                            
+                            <div class="mt-auto d-flex flex-column gap-2">
+                                <a asp-action="Details" asp-route-id="@guia.IdGuia" class="btn-outline-cyan w-100">Ver Detalles</a>
+                                
+                                @if (uId != null && (guia.IdUsuario == uId || esAdmin)) {
+                                    <div class="d-flex gap-2">
+                                        <a asp-action="Edit" asp-route-id="@guia.IdGuia" class="btn-outline-warning-custom w-50">Editar</a>
+                                        <button type="button" onclick="borrarGuia(@guia.IdGuia)" class="btn-outline-danger-custom w-50">Eliminar</button>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function borrarGuia(id) {
+            Swal.fire({ 
+                title: '¿Eliminar Tutorial?', 
+                text: "Esta acción no se puede deshacer.",
+                icon: 'warning', 
+                background: '#111114',
+                color: '#fff',
+                showCancelButton: true, 
+                confirmButtonColor: '#ff4d4d',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((r) => { 
+                if (r.isConfirmed) { 
+                    const f = document.createElement('form'); 
+                    f.method = 'POST'; 
+                    f.action = '/Guias/DeleteConfirmed/' + id;
+                    
+                    const t = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                    const i = document.createElement('input'); 
+                    i.type = 'hidden'; 
+                    i.name = '__RequestVerificationToken'; 
+                    i.value = t;
+                    
+                    f.appendChild(i); 
+                    document.body.appendChild(f); 
+                    f.submit(); 
+                }
+            });
+        }
+    </script>
+</body>
+</html>

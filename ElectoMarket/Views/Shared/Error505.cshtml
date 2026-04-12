@@ -1,0 +1,179 @@
+﻿@{
+    Layout = null; // Mantiene el diseño a pantalla completa
+    ViewData["Title"] = "Error 505: Versión HTTP No Compatible";
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Error 505 - ElectroMarket</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-dark: #08080a;
+            --glass-bg: rgba(18, 18, 22, 0.85);
+            --border-glass: rgba(255, 255, 255, 0.1);
+            --morado: #7c4dff;
+            --cyan-neon: #00d2ff;
+            --morado-glow: rgba(124, 77, 255, 0.25);
+            --cyan-glow: rgba(0, 210, 255, 0.15);
+            --warning-neon: #ffc107;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: white;
+            font-family: 'Inter', system-ui, sans-serif;
+            margin: 0;
+            /* Permitimos el scroll vertical  */
+            overflow-y: auto; 
+            overflow-x: hidden;
+            min-height: 100vh; /* Altura mínima de la pantalla */
+            display: flex;
+            align-items: flex-start; 
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            padding-top: 100px;
+            padding-bottom: 50px; /* Espacio extra al final para que no pegue abajo */
+        }
+
+        /* --- FONDO TECH (Se queda fijo mientras haces scroll) --- */
+        .tech-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(124, 77, 255, 0.12) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(0, 210, 255, 0.1) 0%, transparent 40%);
+        }
+        .tech-bg::after {
+            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 0L40 80M0 40L80 40' stroke='rgba(255,255,255,0.02)' stroke-width='0.5'/%3E%3C/svg%3E");
+        }
+
+        /* --- CONTENEDOR CENTRAL 505 --- */
+        .hero-505-container {
+            z-index: 1;
+            max-width: 1000px;
+            width: 90%;
+            padding: 60px 40px;
+            position: relative;
+            background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('/ImagenesERROR/error505.png');
+            background-size: cover;
+            background-position: center;
+            border-radius: 24px;
+            border: 2px solid;
+            border-image: linear-gradient(135deg, var(--morado) 0%, var(--cyan-neon) 100%) 1;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin-top: 40px; 
+        }
+
+        .holographic-text {
+            position: absolute;
+            top: 30px;
+            left: 40px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #b388ff;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px var(--morado);
+        }
+
+        .error-title {
+            font-size: 6rem;
+            font-weight: 950;
+            margin: 0;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.4), 0 0 40px var(--cyan-neon);
+            animation: glitch 4s infinite;
+            line-height: 0.9;
+        }
+
+        .error-subtitle {
+            font-size: 1.5rem;
+            color: var(--cyan-neon);
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            margin-bottom: 25px;
+            font-weight: 800;
+        }
+
+        .error-desc {
+            font-size: 1.15rem;
+            color: rgba(255,255,255,0.85);
+            max-width: 700px;
+            margin-bottom: 45px;
+            line-height: 1.6;
+        }
+
+        .btn-return {
+            background: linear-gradient(135deg, var(--morado), var(--cyan-neon));
+            color: white;
+            border: none;
+            border-radius: 14px;
+            padding: 18px 50px;
+            font-weight: 800;
+            text-decoration: none;
+            transition: 0.3s;
+            box-shadow: 0 10px 30px rgba(124, 77, 255, 0.5);
+            display: inline-flex;
+            align-items: center;
+            text-transform: uppercase;
+        }
+        .btn-return:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 45px rgba(124, 77, 255, 0.7);
+            color: white;
+        }
+
+        @@keyframes glitch {
+            0%, 100% { transform: skew(0deg); }
+            20% { transform: skew(1.5deg); }
+            21% { transform: skew(-1.5deg); }
+            50% { transform: skew(0.8deg); }
+        }
+
+        /* Estilo para que el scrollbar se vea tech también (Opcional) */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--morado); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--cyan-neon); }
+    </style>
+</head>
+<body>
+
+    <div class="tech-bg"></div>
+
+    @* LOGO SUPERIOR *@
+    <a asp-controller="Home" asp-action="Index" style="position: absolute; top: 40px; left: 50px; text-decoration: none; display: flex; align-items: center; z-index: 10;">
+        <img src="/imagenes/Logo/Logo.jpg" style="height: 50px; width: 50px; border-radius: 50%; border: 2px solid var(--border-glass); box-shadow: 0 0 15px rgba(124,77,255,0.3);">
+        <span class="text-white fw-bold fs-4 ms-3" style="letter-spacing: -0.5px;">ElectroMarket</span>
+    </a>
+
+    <div class="hero-505-container shadow-lg">
+        <div class="holographic-text">SYSTEM OVERLOAD // ERROR 505</div>
+        
+        <h1 class="error-title">505</h1>
+        <p class="error-subtitle">HTTP VERSION NOT SUPPORTED</p>
+        
+        <p class="error-desc">
+            Parece que tu navegador está intentando usar una versión de protocolo que nuestro servidor aún no procesa. 
+            <br>¡Necesitamos una actualización de sistema para continuar!
+        </p>
+
+        <a asp-controller="Home" asp-action="Index" class="btn-return">
+            RESTAURAR CONEXIÓN <i class="bi bi-cpu ms-2"></i>
+        </a>
+    </div>
+
+</body>
+</html>

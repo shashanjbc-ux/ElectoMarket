@@ -1,0 +1,194 @@
+@model ElectoMarket.Models.Producto
+@using Microsoft.AspNetCore.Http
+
+@{
+    Layout = null; // Cero interferencias
+    var uId = Context.Session.GetInt32("UsuarioId");
+    var uNombre = Context.Session.GetString("UsuarioNombre");
+    var uFoto = Context.Session.GetString("UsuarioFoto");
+
+    // LÓGICA DE WHATSAPP
+    string waUrl = "";
+    if (Model.Usuario != null && !string.IsNullOrEmpty(Model.Usuario.Telefono))
+    {
+        var telLimpio = Model.Usuario.Telefono.Replace(" ", "").Replace("+", "");
+        var textoWA = $"Hola {Model.Usuario.Nombre}, vi tu producto '{Model.Nombre}' en ElectroMarket y me interesa.";
+        waUrl = $"https://wa.me/{telLimpio}?text={Uri.EscapeDataString(textoWA)}";
+    }
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@Model.Nombre - ElectroMarket</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #08080a;
+            --card-bg: #111114;
+            --cyan-neon: #00d2ff;
+            --green-neon: #00ff88;
+            --yellow-warning: #ffcc00;
+        }
+
+        body { background-color: var(--bg-dark); color: white; font-family: 'Inter', sans-serif; margin: 0; min-height: 100vh; display: flex; flex-direction: column; }
+
+        /* --- NAVBAR --- */
+        .navbar-custom { padding: 15px 50px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .nav-right { display: flex; align-items: center; gap: 12px; }
+        .nav-avatar { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; }
+        .btn-salir { background: transparent; color: #ff4d4d; border: 1px solid #ff4d4d; border-radius: 20px; padding: 4px 15px; text-decoration: none; font-size: 0.8rem; transition: 0.3s; }
+        .btn-salir:hover { background: #ff4d4d; color: white; }
+        
+        .btn-reg { background: var(--green-neon); color: black; border-radius: 20px; padding: 6px 20px; font-weight: bold; text-decoration: none; font-size: 0.85rem; transition: 0.3s; }
+        .btn-reg:hover { box-shadow: 0 0 15px rgba(0, 255, 136, 0.4); color: black; }
+        .btn-ini { background: transparent; color: white; border: 1px solid var(--cyan-neon); border-radius: 20px; padding: 6px 20px; font-weight: bold; text-decoration: none; font-size: 0.85rem; transition: 0.3s; }
+        .btn-ini:hover { background: var(--cyan-neon); color: black; }
+
+        /* --- CONTENEDOR PRINCIPAL --- */
+        .main-content { flex: 1; display: flex; justify-content: center; align-items: center; padding: 40px; }
+        
+        .product-card { 
+            background: var(--card-bg); 
+            border: 1px solid rgba(0, 210, 255, 0.3); 
+            border-radius: 20px; 
+            width: 100%; 
+            max-width: 900px; 
+            padding: 40px; 
+            display: flex; 
+            gap: 40px; 
+            box-shadow: 0 0 40px rgba(0, 210, 255, 0.1);
+        }
+
+        /* --- IMAGEN --- */
+        .img-container { flex: 1; background: white; border-radius: 15px; display: flex; align-items: center; justify-content: center; height: 380px; overflow: hidden; }
+        .img-container img { max-width: 90%; max-height: 90%; object-fit: contain; }
+
+        /* --- INFORMACIÓN --- */
+        .info-container { flex: 1.1; display: flex; flex-direction: column; justify-content: center; }
+        .title { font-size: 2.2rem; font-weight: 900; margin-bottom: 5px; }
+        .seller-name { color: var(--cyan-neon); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; }
+        .price { color: var(--green-neon); font-size: 1.5rem; font-weight: bold; margin-bottom: 20px; }
+
+        /* --- ALERTA AMARILLA --- */
+        .warning-box { border: 1px solid var(--yellow-warning); border-radius: 8px; padding: 10px 15px; color: var(--yellow-warning); font-size: 0.85rem; font-weight: bold; display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+
+        /* --- DESCRIPCIÓN --- */
+        .desc-box { background: rgba(255,255,255,0.02); border-left: 3px solid var(--cyan-neon); padding: 15px; border-radius: 0 8px 8px 0; margin-bottom: 25px; }
+        .desc-title { font-size: 0.7rem; font-weight: bold; text-transform: uppercase; margin-bottom: 8px; }
+        .desc-text { color: #aaa; font-size: 0.85rem; line-height: 1.5; margin: 0; text-transform: uppercase; }
+
+        /* --- BOTONES --- */
+        .btn-whatsapp { background: #25D366; color: white; border: none; border-radius: 8px; padding: 12px; font-weight: bold; text-align: center; text-decoration: none; width: 100%; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        .btn-whatsapp:hover { background: #1fb355; color: white; opacity: 0.9; }
+
+        .btn-edit { background: var(--yellow-warning); color: black; border: none; border-radius: 8px; padding: 12px; font-weight: bold; text-align: center; text-decoration: none; width: 100%; transition: 0.3s; flex: 1;}
+        .btn-edit:hover { background: #e6b800; color: black; }
+        
+        .btn-chat { background: linear-gradient(90deg, #8a2be2, #00d2ff); color: white; border: none; border-radius: 8px; padding: 12px; font-weight: bold; text-align: center; text-decoration: none; width: 100%; transition: 0.3s; }
+        .btn-chat:hover { opacity: 0.9; color: white; }
+
+        .btn-back { background: transparent; border: 1px solid white; color: white; border-radius: 8px; padding: 12px; font-weight: bold; text-align: center; text-decoration: none; width: 100%; transition: 0.3s; flex: 1;}
+        .btn-back:hover { background: rgba(255,255,255,0.1); color: white; }
+        
+        .guest-box { border: 1px dashed var(--cyan-neon); border-radius: 8px; padding: 10px; text-align: center; color: var(--cyan-neon); font-size: 0.85rem; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar-custom">
+        <a asp-controller="Home" asp-action="Index" class="text-decoration-none d-flex align-items-center text-white">
+            <i class="bi bi-gear-fill me-2 fs-4"></i>
+            <span class="fw-bold fs-4">ElectroMarket</span>
+        </a>
+        <div class="nav-right">
+            @if (uId != null)
+            {
+                <span class="text-white-50 small">Hola, <b class="text-white">@uNombre</b></span>
+                <img src="@(!string.IsNullOrEmpty(uFoto) ? uFoto : "/imagenes/placeholder-perfil.png")" class="nav-avatar">
+                <form asp-controller="Usuarios" asp-action="Logout" method="post" class="m-0">
+                    <button type="submit" class="btn-salir">Salir</button>
+                </form>
+            }
+            else
+            {
+                <a asp-controller="Usuarios" asp-action="Register" class="btn-reg">Registrarse</a>
+                <a asp-controller="Usuarios" asp-action="Login" class="btn-ini">Iniciar Sesión</a>
+            }
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <div class="product-card">
+            
+            <div class="img-container">
+                <img src="@(string.IsNullOrEmpty(Model.ImagenUrl) ? "/imagenes/no-image.png" : Model.ImagenUrl)" alt="@Model.Nombre">
+            </div>
+
+            <div class="info-container">
+                <h1 class="title">@Model.Nombre</h1>
+                
+                <div class="seller-name">
+                    <i class="bi bi-person-circle me-1"></i> Publicado por: @(Model.Usuario?.Nombre ?? "Usuario de ElectroMarket")
+                </div>
+
+                <div class="price">@Model.Precio.ToString("C0")</div>
+
+                @if (Model.RequiereReparacion == true)
+                {
+                    <div class="warning-box">
+                        <i class="bi bi-x-circle-fill"></i> ¡Ojo! Este equipo requiere reparación o tiene detalles
+                    </div>
+                }
+
+                <div class="desc-box">
+                    <div class="desc-title">DESCRIPCIÓN</div>
+                    <p class="desc-text">@Model.Descripcion</p>
+                </div>
+
+                @* LÓGICA DE BOTONES *@
+                @if (uId != null)
+                {
+                    if (uId == Model.IdUsuario)
+                    {
+                        <div class="d-flex gap-3 mt-auto">
+                            <a asp-action="Edit" asp-route-id="@Model.IdProducto" class="btn-edit">Editar Producto</a>
+                            <a asp-action="Index" class="btn-back">Volver</a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex flex-column gap-2 mt-auto">
+                            
+                            @* 🚨 BOTÓN DE WHATSAPP CONDICIONAL 🚨 *@
+                            @if (!string.IsNullOrEmpty(waUrl))
+                            {
+                                <a href="@waUrl" target="_blank" class="btn-whatsapp">
+                                    <i class="bi bi-whatsapp fs-5"></i> WhatsApp
+                                </a>
+                            }
+
+                            <a asp-controller="Chats" asp-action="IniciarChat" asp-route-id="@Model.IdUsuario" class="btn-chat">Chat Interno</a>
+                            <a asp-action="Index" class="btn-back">Regresar</a>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="d-flex flex-column mt-auto">
+                        <div class="guest-box">
+                            <i class="bi bi-lock-fill"></i> Inicia sesión o regístrate para contactar al vendedor
+                        </div>
+                        <a asp-action="Index" class="btn-back">Regresar</a>
+                    </div>
+                }
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>

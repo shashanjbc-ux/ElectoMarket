@@ -1,0 +1,21 @@
+## Carpetas de compilación (Basura que NO va a GitHub)
+[Bb]in/
+[Oo]bj/
+
+## Archivos de configuración de Visual Studio
+.vs/
+.vscode/
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+
+## Seguridad: No subir configuraciones locales con claves
+appsettings.Development.json
+
+## Archivos de base de datos temporales
+*.dbmdl
+*.dbproj.user
+
+## Publicación
+publish/

@@ -1,0 +1,357 @@
+@model ElectoMarket.Models.Usuario
+
+@{
+    Layout = null; // Diseño independiente para máximo impacto visual
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Crear Cuenta - ElectroMarket</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-dark: #08080a;
+            --glass-bg: rgba(18, 18, 22, 0.8);
+            --morado-neon: #7c4dff;
+            --cyan-neon: #00d2ff;
+            --border-glass: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: white;
+            font-family: 'Inter', system-ui, sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- FONDO DE CIRCUITOS --- */
+        .tech-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(124, 77, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(0, 210, 255, 0.1) 0%, transparent 50%);
+        }
+
+        .tech-bg::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 10L90 90M90 10L10 90' stroke='rgba(255,255,255,0.02)' stroke-width='0.5' fill='none'/%3E%3C/svg%3E");
+            background-size: 150px 150px;
+        }
+
+        /* --- NAVBAR --- */
+        .navbar-custom {
+            background: rgba(10, 10, 12, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-glass);
+            padding: 12px 0;
+        }
+
+        /* --- FORMULARIO GLASS --- */
+        .register-container {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(25px);
+            border: 1px solid var(--border-glass);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 480px;
+            padding: 40px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
+            position: relative;
+        }
+
+        .glass-card::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 20%; right: 20%; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--morado-neon), var(--cyan-neon), transparent);
+        }
+
+        /*  ESTILOS DE TEXTO BLANCO */
+        .form-label, label {
+            color: white !important;
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+        }
+
+        .form-control-dark, .form-select {
+            background: rgba(255,255,255,0.03) !important;
+            border: 1px solid var(--border-glass) !important;
+            color: white !important;
+            padding: 12px;
+            transition: 0.3s;
+        }
+
+        .form-control-dark:focus, .form-select:focus {
+            background: rgba(255,255,255,0.08) !important;
+            border-color: var(--morado-neon) !important;
+            box-shadow: 0 0 15px rgba(124, 77, 255, 0.2) !important;
+            outline: none;
+        }
+
+        /*  PLACEHOLDERS BLANCOS  */
+        .form-control-dark::placeholder {
+            color: rgba(255, 255, 255, 0.7) !important;
+        }
+
+        .input-group-text {
+            background: rgba(255,255,255,0.03) !important;
+            border: 1px solid var(--border-glass) !important;
+            color: var(--cyan-neon) !important;
+            border-radius: 12px 0 0 12px !important;
+        }
+
+        /* Texto "¿Ya tienes cuenta?" Blanco */
+        .text-white-50 {
+            color: white !important;
+            opacity: 1 !important;
+        }
+
+        .btn-eye {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-glass);
+            border-left: none;
+            color: rgba(255,255,255,0.5);
+            border-radius: 0 12px 12px 0 !important;
+        }
+        .btn-eye:hover { color: var(--cyan-neon); }
+
+        .btn-register {
+            background: linear-gradient(135deg, var(--morado-neon), #6200ea);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 15px;
+            transition: 0.3s;
+        }
+
+        .btn-register:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(124, 77, 255, 0.4);
+            color: white;
+        }
+
+        .login-link { color: var(--cyan-neon); text-decoration: none; font-weight: 600; }
+        .login-link:hover { text-shadow: 0 0 10px var(--cyan-neon); color: white; }
+        
+        .validation-msg { font-size: 0.75rem; font-weight: 500; }
+
+        .border-success-alert { border: 2px solid #00ff88 !important; box-shadow: 0 0 20px rgba(0, 255, 136, 0.4) !important; border-radius: 20px !important; }
+        .border-error-alert { border: 2px solid #ff4d4d !important; box-shadow: 0 0 20px rgba(255, 77, 77, 0.4) !important; border-radius: 20px !important; }
+        
+        /*  ARREGLO PARA LA LISTA DESPLEGABLE DE CIUDADES  */
+        option {
+            background-color: var(--bg-dark); /* Fondo oscuro */
+            color: white !important;          /* Letras blancas */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="tech-bg"></div>
+
+    <nav class="navbar-custom">
+        <div class="container d-flex justify-content-between align-items-center">
+            <a asp-controller="Home" asp-action="Index" class="d-flex align-items-center text-decoration-none">
+                <img src="/imagenes/Logo/Logo.jpg" alt="Logo" style="height: 40px; width: 40px; border-radius: 50%; background-color: white; object-fit: contain; padding: 2px;">
+                <span class="text-white fw-bold fs-5 ms-2">ElectroMarket</span>
+            </a>
+            <a asp-controller="Productos" asp-action="Index" class="text-white-50 text-decoration-none small">Catálogo</a>
+        </div>
+    </nav>
+
+    <div class="register-container">
+        <div class="glass-card">
+            <div class="text-center mb-4">
+                <i class="bi bi-person-plus-fill fs-1" style="color: var(--morado-neon);"></i>
+                <h3 class="fw-bold mt-2 text-white">Crear Cuenta</h3>
+                <p class="text-white small">Únete a la red tecnológica de ElectroMarket</p>
+            </div>
+
+            <form asp-action="Register" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger validation-msg mb-3"></div>
+
+                @*  CAMPO NOMBRE ACTUALIZADO *@
+                <div class="mb-3 text-start">
+                    <label class="form-label">Nombre Completo</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-person"></i></span>
+                        <input asp-for="Nombre" 
+                               class="form-control form-control-dark" 
+                               placeholder="Escribe tu nombre..." 
+                               maxlength="50"
+                               pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$"
+                               oninput="this.value = this.value.replace(/[0-9]/g, '');" 
+                               required />
+                    </div>
+                    <span asp-validation-for="Nombre" class="text-danger validation-msg"></span>
+                </div>
+
+                @* Correo *@
+                <div class="mb-3 text-start">
+                    <label class="form-label">Correo Electrónico</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                        <input asp-for="Correo" 
+                               type="email" 
+                               class="form-control form-control-dark" 
+                               placeholder="ejemplo@correo.com" 
+                               pattern=".*\.com$" 
+                               title="El correo debe terminar en .com"
+                               required />
+                    </div>
+                    <span asp-validation-for="Correo" class="text-danger validation-msg"></span>
+                </div>
+
+                @*  CAMPO CIUDAD ACTUALIZADO *@
+                <div class="mb-3 text-start">
+                    <label class="form-label">Ciudad</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                        <select asp-for="Ciudad" class="form-select form-control-dark" required>
+                            <option value="" class="text-white" disabled selected>Selecciona tu ciudad...</option>
+                            <option value="Bogotá">Bogotá</option>
+                            <option value="Medellín">Medellín</option>
+                            <option value="Cali">Cali</option>
+                            <option value="Barranquilla">Barranquilla</option>
+                            <option value="Cartagena">Cartagena</option>
+                            <option value="Bucaramanga">Bucaramanga</option>
+                            <option value="Cúcuta">Cúcuta</option>
+                            <option value="Pereira">Pereira</option>
+                            <option value="Santa Marta">Santa Marta</option>
+                            <option value="Ibagué">Ibagué</option>
+                            <option value="Pasto">Pasto</option>
+                            <option value="Manizales">Manizales</option>
+                            <option value="Neiva">Neiva</option>
+                            <option value="Villavicencio">Villavicencio</option>
+                            <option value="Armenia">Armenia</option>
+                            <option value="Valledupar">Valledupar</option>
+                            <option value="Montería">Montería</option>
+                            <option value="Sincelejo">Sincelejo</option>
+                            <option value="Popayán">Popayán</option>
+                            <option value="Tunja">Tunja</option>
+                            <option value="Riohacha">Riohacha</option>
+                            <option value="Quibdó">Quibdó</option>
+                        </select>
+                    </div>
+                    <span asp-validation-for="Ciudad" class="text-danger validation-msg"></span>
+                </div>
+
+                @* Contraseña *@
+                <div class="mb-3 text-start">
+                    <label class="form-label">Contraseña</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                        <input asp-for="Contrasena" id="pass" class="form-control form-control-dark" type="password" placeholder="Crea una contraseña segura" style="border-radius: 0 !important;" required />
+                        <button class="btn btn-eye" type="button" onclick="togglePassword('pass', 'eye1')">
+                            <i id="eye1" class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                    <span asp-validation-for="Contrasena" class="text-danger validation-msg"></span>
+                </div>
+
+                @* Confirmar Contraseña *@
+                <div class="mb-4 text-start">
+                    <label class="form-label">Confirmar Contraseña</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-shield-lock"></i></span>
+                        <input asp-for="ConfirmarContrasena" id="confirmPass" class="form-control form-control-dark" type="password" placeholder="Repite tu contraseña" style="border-radius: 0 !important;" required />
+                        <button class="btn btn-eye" type="button" onclick="togglePassword('confirmPass', 'eye2')">
+                            <i id="eye2" class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                    <span asp-validation-for="ConfirmarContrasena" class="text-danger validation-msg"></span>
+                </div>
+
+                <button type="submit" class="btn btn-register w-100 shadow-lg">
+                    Registrarse ahora
+                </button>
+
+                @*  PIE DE PÁGINA ACTUALIZADO *@
+                <div class="mt-4 text-center">
+                    <p class="text-white small">¿Ya tienes cuenta? <a asp-action="Login" class="login-link fw-bold ms-1">Inicia sesión aquí</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> 
+    
+    <script>
+        function togglePassword(inputId, eyeId) {
+            const input = document.getElementById(inputId);
+            const eyeIcon = document.getElementById(eyeId);
+            if (input.type === "password") {
+                input.type = "text";
+                eyeIcon.classList.replace("bi-eye", "bi-eye-slash");
+            } else {
+                input.type = "password";
+                eyeIcon.classList.replace("bi-eye-slash", "bi-eye");
+            }
+        }
+
+        @if (ViewBag.RegistroExitoso != null && ViewBag.RegistroExitoso == true)
+        {
+            <text>
+            Swal.fire({
+                title: '<span style="color: #00ff88; font-weight: 800;">¡CUENTA CREADA!</span>',
+                html: '<span style="color: #aaa; font-size: 0.95rem;">Tu cuenta fue creada exitosamente.<br>Redirigiendo a tu perfil...</span>',
+                icon: 'success',
+                background: '#161618',
+                color: '#fff',
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true,
+                backdrop: `rgba(0, 255, 136, 0.1)`,
+                customClass: { popup: 'border-success-alert' },
+                willClose: () => {
+                    window.location.href = '@Url.Action("Perfil", "Usuarios")';
+                }
+            });
+            </text>
+        }
+        else if (ViewBag.ErrorRegistro != null && ViewBag.ErrorRegistro == true)
+        {
+            <text>
+            Swal.fire({
+                title: '<span style="color: #ff4d4d; font-weight: 800;">ACCESO DENEGADO</span>',
+                html: '<span style="color: #aaa; font-size: 0.95rem;">No se pudo crear la cuenta. Por favor verifica que los datos sean correctos y que las contraseñas coincidan.</span>',
+                icon: 'error',
+                background: '#161618',
+                color: '#fff',
+                confirmButtonColor: '#7c4dff',
+                confirmButtonText: 'Intentar de nuevo',
+                backdrop: `rgba(255, 77, 77, 0.1)`,
+                customClass: { popup: 'border-error-alert' }
+            });
+            </text>
+        }
+    </script>
+</body>
+</html>

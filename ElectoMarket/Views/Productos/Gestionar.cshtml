@@ -1,0 +1,307 @@
+﻿@model IEnumerable<ElectoMarket.Models.Producto>
+@using Microsoft.AspNetCore.Http
+
+@{
+    Layout = null;
+    var uId = Context.Session.GetInt32("UsuarioId");
+    var uNombre = Context.Session.GetString("UsuarioNombre") ?? "Admin";
+    var uFoto = Context.Session.GetString("UsuarioFoto");
+    var miRol = Context.Session.GetInt32("UsuarioRol");
+    bool esAdmin = miRol == 1;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Control Maestro de Inventario - ElectroMarket</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-dark: #08080a;
+            --glass-bg: rgba(18, 18, 22, 0.85);
+            --border-glass: rgba(255, 255, 255, 0.1);
+            --morado-neon: #7c4dff;
+            --cyan-neon: #00d2ff;
+            --verde-neon: #00ff88;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: white;
+            font-family: 'Inter', system-ui, sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tech-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+            background-image: 
+                radial-gradient(circle at 10% 10%, rgba(124, 77, 255, 0.12) 0%, transparent 40%),
+                radial-gradient(circle at 90% 90%, rgba(0, 210, 255, 0.1) 0%, transparent 40%);
+        }
+        .tech-bg::after {
+            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 0L40 80M0 40L80 40' stroke='rgba(255,255,255,0.02)' stroke-width='0.5'/%3E%3C/svg%3E");
+        }
+
+        .navbar-custom {
+            background: rgba(10, 10, 12, 0.9);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--border-glass);
+            padding: 12px 0;
+        }
+
+        .nav-link-tech {
+            color: rgba(255,255,255,0.6);
+            text-decoration: none; font-size: 0.85rem; font-weight: 500; transition: 0.3s;
+            display: flex; align-items: center;
+        }
+        .nav-link-tech:hover { color: var(--cyan-neon); text-shadow: 0 0 10px var(--cyan-neon); }
+
+        .admin-container { flex-grow: 1; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; }
+
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(30px);
+            border: 1px solid var(--border-glass);
+            border-radius: 24px;
+            width: 100%; max-width: 1250px; padding: 35px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.7);
+            position: relative;
+        }
+
+        .glass-panel::before {
+            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 3px;
+            background: linear-gradient(90deg, var(--morado-neon), var(--cyan-neon));
+            border-radius: 24px 24px 0 0;
+        }
+
+        .filter-box {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-glass);
+            border-radius: 18px; padding: 25px; margin-bottom: 35px;
+        }
+
+        .form-control-tech {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid var(--border-glass) !important;
+            color: white !important; border-radius: 12px;
+        }
+        
+        /*  ESTILOS PARA MENÚS DESPLEGABLES OSCUROS  */
+        .form-control-tech option { background-color: #121216 !important; color: #ffffff !important; font-weight: 500; }
+        .form-control-tech optgroup { background-color: #1c1c1f; color: var(--cyan-neon); font-weight: 800; font-size: 0.9rem; font-style: normal; }
+
+        .table-custom { color: white; border-collapse: separate; border-spacing: 0 12px; }
+        .table-custom thead th { border: none; color: var(--cyan-neon); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1.5px; padding: 15px; }
+        .table-custom tbody tr { background: #ffffff; transition: 0.3s; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-radius: 12px; }
+        .table-custom tbody tr:hover { transform: scale(1.005); }
+        .table-custom td { border: none; padding: 15px; vertical-align: middle; }
+        .table-custom td:first-child { border-radius: 12px 0 0 12px; }
+        .table-custom td:last-child { border-radius: 0 12px 12px 0; }
+        
+        .prod-img { width: 55px; height: 55px; object-fit: cover; border-radius: 12px; border: 1px solid var(--border-glass); }
+        
+        .badge-tech { border-radius: 8px; padding: 5px 12px; font-size: 0.7rem; font-weight: 700; }
+        .badge-status { background: rgba(0, 255, 136, 0.1); color: var(--verde-neon); border: 1px solid rgba(0, 255, 136, 0.3); }
+        .badge-repair { background: rgba(255, 193, 7, 0.1); color: #ffc107; border: 1px solid rgba(255, 193, 7, 0.3); }
+
+        .btn-action-sm {
+            width: 38px; height: 38px; border-radius: 12px;
+            display: inline-flex; align-items: center; justify-content: center;
+            transition: 0.2s; text-decoration: none; font-size: 1.1rem;
+        }
+        .btn-view { border: 1px solid rgba(0, 210, 255, 0.4); color: var(--cyan-neon); background: rgba(0, 210, 255, 0.05); }
+        .btn-view:hover { background: var(--cyan-neon); color: white; }
+        .btn-edit { border: 1px solid rgba(255, 193, 7, 0.4); color: #ffc107; background: rgba(255, 193, 7, 0.05); }
+        .btn-edit:hover { background: #ffc107; color: white; }
+        .btn-delete { border: 1px solid rgba(255, 77, 77, 0.4); color: #ff4d4d; background: rgba(255, 77, 77, 0.05); }
+        .btn-delete:hover { background: #ff4d4d; color: white; border-color: #ff4d4d; }
+    </style>
+</head>
+<body>
+
+    <div class="tech-bg"></div>
+
+    @* NAVBAR PREMIUM UNIFICADA *@
+    <nav class="navbar-custom z-3">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <a asp-controller="Home" asp-action="Index" class="d-flex align-items-center text-decoration-none">
+                    <img src="/imagenes/Logo/Logo.jpg" alt="Logo" class="me-2" style="height: 40px; width: 40px; border-radius: 50%;">
+                    <span class="text-white fw-bold fs-5">ElectroMarket</span>
+                </a>
+                
+                <div class="ms-5 d-flex gap-4">
+                    <a asp-controller="Productos" asp-action="Index" class="nav-link-tech"><i class="bi bi-shop me-1"></i> Catálogo</a>
+                    @if (esAdmin) { 
+                        <a asp-controller="Home" asp-action="Index" class="nav-link-tech"><i class="bi bi-shield-lock me-1"></i> Inicio</a>
+                        <a asp-controller="Usuarios" asp-action="ListadoUsuarios" class="nav-link-tech"><i class="bi bi-people me-1"></i> Gestión Usuarios</a>
+                        <a asp-controller="Productos" asp-action="Gestionar" class="text-white text-decoration-none small fw-bold" style="text-shadow: 0 0 5px rgba(255,255,255,0.5);"><i class="bi bi-box-seam me-1"></i> Gestión Productos</a>
+                    }
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-4">
+                <a asp-controller="Usuarios" asp-action="Perfil" class="d-flex align-items-center text-decoration-none">
+                    <img src="@(!string.IsNullOrEmpty(uFoto) ? uFoto : "/imagenes/placeholder-perfil.png")" class="rounded-circle border border-secondary me-2" style="width: 35px; height: 35px; object-fit: cover;">
+                    <span class="text-white-50 small">Hola, <span class="fw-bold text-white">@uNombre</span></span>
+                </a>
+                
+                <form asp-controller="Usuarios" asp-action="Logout" method="post" class="m-0 ms-2">
+                    <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">Salir</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <div class="admin-container">
+        <div class="glass-panel">
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold m-0"><i class="bi bi-cpu text-cyan-neon me-2"></i>Control Maestro de <span class="text-cyan-neon">Inventario</span></h2>
+                    <p class="text-white-50 small">Gestión global de equipos y publicaciones de usuarios</p>
+                </div>
+                <span class="badge bg-primary px-3 py-2 fw-bold" style="border-radius: 10px; font-size: 0.8rem;">
+                    <i class="bi bi-box-seam me-1"></i> @Model.Count() Equipos en total
+                </span>
+            </div>
+
+            @*  NUEVA FILA DE ACCESOS RÁPIDOS *@
+            <div class="row mb-4">
+                @*  TARJETA DE ACCESO RÁPIDO A TUTORIALES (ADMIN) *@
+                <div class="col-md-3 mb-3">
+                    <div class="card text-center p-3 shadow-sm h-100" style="background-color: #111622; border: 1px solid rgba(0, 255, 136, 0.3); border-radius: 15px; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        <div class="card-body p-2">
+                            <i class="bi bi-play-btn-fill mb-2 d-block" style="font-size: 2.5rem; color: #00ff88; text-shadow: 0 0 15px rgba(0,255,136,0.4);"></i>
+                            <h6 class="text-white fw-bold mb-3">Tutoriales y Guías</h6>
+                            <a asp-controller="Guias" asp-action="Index" class="btn w-100 fw-bold rounded-pill" style="background-color: transparent; border: 2px solid #00ff88; color: #00ff88;">
+                                Ir a Gestionar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @*  FILTROS FUNCIONALES ACTUALIZADOS *@
+            <div class="filter-box">
+                <form asp-action="Gestionar" method="get" class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold text-white-50"><i class="bi bi-search me-1"></i>Nombre del Producto</label>
+                        <input type="text" name="buscar" value="@ViewBag.BuscarActual" class="form-control form-control-tech" placeholder="Ej: iPhone 13..." />
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold text-white-50"><i class="bi bi-person-badge me-1"></i>Vendedor</label>
+                        <input type="text" name="vendedor" value="@ViewBag.VendedorActual" class="form-control form-control-tech" placeholder="Ej: Sebastian..." />
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold text-white-50"><i class="bi bi-grid-fill me-1"></i>Categoría</label>
+                        <select name="categoria" class="form-select form-control-tech">
+                            <option value="">Todas las categorías</option>
+                            <optgroup label="🎮 Tecnología y Gaming">
+                                <option value="Smartphone" selected="@(ViewBag.CategoriaActual == "Smartphone")">Smartphones</option>
+                                <option value="Laptop" selected="@(ViewBag.CategoriaActual == "Laptop")">Laptops y PCs</option>
+                                <option value="Consola" selected="@(ViewBag.CategoriaActual == "Consola")">Consolas de Videojuegos</option>
+                                <option value="Televisor" selected="@(ViewBag.CategoriaActual == "Televisor")">Televisores y Smart TV</option>
+                                <option value="Audio" selected="@(ViewBag.CategoriaActual == "Audio")">Equipos de Audio y Audífonos</option>
+                            </optgroup>
+                            <optgroup label="🏠 Electrodomésticos">
+                                <option value="Lavadora" selected="@(ViewBag.CategoriaActual == "Lavadora")">Lavadoras</option>
+                                <option value="Refrigerador" selected="@(ViewBag.CategoriaActual == "Refrigerador")">Refrigeradores</option>
+                                <option value="Microondas" selected="@(ViewBag.CategoriaActual == "Microondas")">Microondas</option>
+                                <option value="Climatizacion" selected="@(ViewBag.CategoriaActual == "Climatizacion")">Aire Acondicionado y Ventiladores</option>
+                            </optgroup>
+                            <option value="Otro" selected="@(ViewBag.CategoriaActual == "Otro")">Otros / Accesorios</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold text-white-50"><i class="bi bi-sort-down me-1"></i>Ordenar por</label>
+                        <select name="ordenarPor" class="form-select form-control-tech">
+                            <option value="" selected="@(string.IsNullOrEmpty(ViewBag.OrdenActual))">Más recientes primero</option>
+                            <option value="precio_asc" selected="@(ViewBag.OrdenActual == "precio_asc")">Precio: Menor a Mayor</option>
+                            <option value="precio_desc" selected="@(ViewBag.OrdenActual == "precio_desc")">Precio: Mayor a Menor</option>
+                            <option value="nom_asc" selected="@(ViewBag.OrdenActual == "nom_asc")">Nombre: A → Z</option>
+                            <option value="nom_desc" selected="@(ViewBag.OrdenActual == "nom_desc")">Nombre: Z → A</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-2 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary w-100 fw-bold shadow-sm" style="border-radius: 12px;"><i class="bi bi-funnel-fill me-1"></i>Aplicar</button>
+                        <a asp-action="Gestionar" class="btn btn-outline-light px-3" style="border-radius: 12px;" title="Restablecer filtros"><i class="bi bi-arrow-counterclockwise"></i></a>
+                    </div>
+                </form>
+            </div>
+            @*  FIN DEL BLOQUE DE FILTROS  *@
+
+            @* TABLA *@
+            <div class="table-responsive">
+                <table class="table table-custom align-middle">
+                    <thead>
+                        <tr>
+                            <th>Vista</th>
+                            <th>Producto / Categoría</th>
+                            <th>Vendedor / Dueño</th>
+                            <th>Precio / Stock</th>
+                            <th>Estado</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <img src="@(string.IsNullOrEmpty(item.ImagenUrl) ? "/imagenes/no-image.png" : item.ImagenUrl)" class="prod-img shadow-sm" />
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-dark fs-6">@item.Nombre</div>
+                                    <span class="badge bg-dark text-white mt-1" style="font-size: 0.65rem;">@item.Categoria</span>
+                                </td>
+                                <td>
+                                    <div class="fw-bold small text-dark">@(item.Usuario?.Nombre ?? "Usuario")</div>
+                                    <div class="text-secondary" style="font-size: 0.7rem;">ID: @item.IdUsuario</div>
+                                </td>
+                                <td>
+                                    <div class="text-success fw-bold fs-6">@item.Precio.ToString("C0")</div>
+                                    <div class="text-secondary small fw-semibold">Stock: @item.Cantidad</div>
+                                </td>
+                                <td>
+                                    @if (item.RequiereReparacion) {
+                                        <span class="badge badge-tech badge-repair"><i class="bi bi-tools me-1"></i>Reparar</span>
+                                    } else {
+                                        <span class="badge badge-tech badge-status"><i class="bi bi-check-circle me-1"></i>Disponible</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <a asp-action="Details" asp-route-id="@item.IdProducto" class="btn-action-sm btn-view" title="Ver"><i class="bi bi-eye"></i></a>
+                                        <a asp-action="Edit" asp-route-id="@item.IdProducto" class="btn-action-sm btn-edit" title="Editar"><i class="bi bi-pencil"></i></a>
+                                        
+                                        @*  ELIMINAR CORREGIDO: Enlace con ID para evitar el 404  *@
+                                        <a asp-action="Delete" asp-route-id="@item.IdProducto" class="btn-action-sm btn-delete" title="Eliminar">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,206 @@
+﻿@{
+    Layout = null; // Mantiene el diseño a pantalla completa    
+    ViewData["Title"] = "Error 404: Conexión Interrumpida";
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Error 404 - ElectroMarket</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-dark: #08080a;
+            --glass-bg: rgba(18, 18, 22, 0.85);
+            --border-glass: rgba(255, 255, 255, 0.1);
+            --morado: #7c4dff;
+            --cyan-neon: #00d2ff;
+            --morado-glow: rgba(124, 77, 255, 0.25);
+            --cyan-glow: rgba(0, 210, 255, 0.15);
+            --warning-neon: #ffc107;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: white;
+            font-family: 'Inter', system-ui, sans-serif;
+            margin: 0;
+            overflow: hidden; /* Evita scroll en la página de error */
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+        }
+
+        /* --- FONDO TECH --- */
+        .tech-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(124, 77, 255, 0.12) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(0, 210, 255, 0.1) 0%, transparent 40%);
+        }
+        .tech-bg::after {
+            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 0L40 80M0 40L80 40' stroke='rgba(255,255,255,0.02)' stroke-width='0.5'/%3E%3C/svg%3E");
+        }
+
+        /* --- HERO CONTAINER (FOTO DEL TECLADO) --- */
+        .hero-404-container {
+            z-index: 1;
+            max-width: 1100px;
+            width: 100%;
+            padding: 40px;
+            position: relative;
+            background-image: url('/imagenes/fondo-error-404.png'); 
+            background-size: cover;
+            background-position: center;
+            border-radius: 24px;
+            border: 2px solid;
+            border-image: linear-gradient(135deg, #7c4dff 0%, #00d2ff 100%) 1;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.7);
+            min-height: 500px; /* Asegura un tamaño mínimo dramático */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+
+        /* --- TEXTOS RECREADOS DEL DISEÑO --- */
+        .text-overlay-404 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+            margin: 0;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.8), 0 0 30px rgba(0, 210, 255, 0.6);
+            animation: glitch 3s infinite;
+        }
+
+        .text-sub-404 {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .holographic-text {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #b388ff;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px var(--morado);
+            animation: flicker 4s infinite;
+        }
+
+        /* --- BOTONES PREMIUM RECREADOS --- */
+        .btn-action-primary {
+            background: linear-gradient(135deg, var(--morado), #00d2ff);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 40px;
+            font-weight: 700;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 25px rgba(124, 77, 255, 0.4);
+            margin-top: 30px;
+        }
+        .btn-action-primary:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(124, 77, 255, 0.6); color: white; }
+
+        /* Estilo para el enlace secundario "[ ] EXPLORAR CATÁLOGO..." */
+        .btn-action-secondary {
+            display: inline-block;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--warning-neon);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+        .btn-action-secondary:hover { color: white; text-shadow: 0 0 10px white; }
+
+        /* Logo superior de la marca (opcional) */
+        .top-brand {
+            position: absolute;
+            top: 30px;
+            left: 40px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        /* --- ANIMACIONES TECH --- */
+        @@keyframes flicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+            52% { opacity: 1; }
+            54% { opacity: 0.8; }
+            56% { opacity: 1; }
+        }
+
+        @@keyframes glitch {
+            0% { text-shadow: 0 0 15px rgba(255, 255, 255, 0.8), 0 0 30px rgba(0, 210, 255, 0.6); }
+            2% { text-shadow: 2px 0 var(--morado), -2px 0 var(--cyan-neon), 0 0 15px rgba(255,255,255,0.8); }
+            4% { text-shadow: 0 0 15px rgba(255, 255, 255, 0.8); }
+            100% { text-shadow: 0 0 15px rgba(255, 255, 255, 0.8), 0 0 30px rgba(0, 210, 255, 0.6); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="tech-bg"></div>
+
+    @* LOGO DE LA MARCA *@
+    <a asp-controller="Home" asp-action="Index" class="top-brand">
+        <img src="/imagenes/Logo/Logo.jpg" alt="Logo ElectroMarket" style="height: 45px; width: 45px; border-radius: 50%; box-shadow: 0 0 15px rgba(124, 77, 255, 0.4);">
+        <span class="text-white fw-bold fs-4 ms-3 tracking-tight">ElectroMarket</span>
+    </a>
+
+    @* CONTENEDOR CENTRAL 404 *@
+    <div class="hero-404-container shadow-lg">
+        
+        @* Texto holográfico lateral recreado *@
+        <div class="holographic-text">CONEXIÓN INTERRUMPIDA</div>
+
+        @* Textos centrales recreados con brillo neón *@
+        <h1 class="text-overlay-404">404 ERROR</h1>
+        <p class="text-sub-404">CONEXIÓN DE PÁGINA INTERRUMPIDA | CIDOO V75 Series</p>
+        
+        <p class="text-sub-404 small mt-1 text-white-50 opacity-75">PÁGINA NO ENCONTRADA.</p>
+
+        @* BOTONES DE ACCIÓN FUNCIONALES *@
+        <div class="d-flex flex-column align-items-center">
+            <a asp-controller="Home" asp-action="Index" class="btn-action-primary">
+                Volver al Inicio (ElectroMarket Home) <i class="bi bi-arrow-right ms-2 fs-5"></i>
+            </a>
+            
+            @* Enlace secundario estilizado como el diseño original *@
+            <a asp-controller="Productos" asp-action="Index" class="btn-action-secondary">
+                <i class="bi bi-shop me-2"></i> [ ] EXPLORAR CATÁLOGO DE PRODUCTOS (ElectroMarket)
+            </a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,186 @@
+﻿@model ElectoMarket.Models.Guia
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Publicar Tutorial - ElectroMarket</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root { --acento-create: #00ff88; }
+        body { background-color: #0F0F10; color: #FFFFFF; font-family: 'Inter', sans-serif; }
+        
+        .create-panel {
+            background: rgba(18, 18, 22, 0.85);
+            backdrop-filter: blur(20px);
+            border: 2px solid var(--acento-create);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 15px 35px rgba(0, 255, 136, 0.2);
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .form-control-tech {
+            background-color: rgba(0,0,0,0.3) !important;
+            border: 1px solid rgba(255,255,255,0.1) !important;
+            color: white !important;
+            border-radius: 12px;
+            padding: 12px;
+            transition: 0.3s;
+        }
+
+        .form-control-tech:focus {
+            border-color: var(--acento-create) !important;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.3) !important;
+        }
+
+        .btn-publish-neon {
+            background: linear-gradient(135deg, var(--acento-create), #00cc6e);
+            color: black; font-weight: 800; border-radius: 50px; padding: 12px 30px; border: none; transition: 0.3s;
+            text-transform: uppercase;
+        }
+
+        .btn-publish-neon:disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(1); }
+        .counter-text { font-size: 0.85rem; font-weight: bold; transition: 0.3s; }
+        
+        .nav-link-custom { color: #aaa; text-decoration: none; transition: 0.3s; }
+        .nav-link-custom:hover { color: white; }
+    </style>
+</head>
+<body>
+
+<div class="container min-vh-100 d-flex align-items-center justify-content-center py-5">
+    <div class="create-panel">
+        
+        <div class="mb-5 border-bottom border-secondary pb-3">
+            <h1 class="fw-bold m-0 text-white"><i class="bi bi-cloud-plus me-2"></i>Sube tu <span style="color: var(--acento-create);">Guía de Video</span></h1>
+        </div>
+
+        <form asp-action="Create" enctype="multipart/form-data" method="post" id="formTutorial">
+            <div class="row g-4">
+                
+                @* Título *@
+                <div class="col-md-12">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label asp-for="Titulo" class="fw-bold m-0 text-white-50 small">Título de la Guía (Sin números)</label>
+                        <span id="titleCountDisplay" class="counter-text" style="color: #ff4a68;">0 / 30 caracteres aprox.</span>
+                    </div>
+                    <input asp-for="Titulo" id="txtTitulo" class="form-control-tech w-100" 
+                           placeholder="Ej: Cómo instalar una lavadora" maxlength="150" onkeypress="return bloquearNumeros(event)" required />
+                </div>
+
+                @* ---------------- OPCIONES DE VIDEO ---------------- *@
+                <div class="col-md-12 p-4 mt-4" style="background-color: rgba(255,255,255,0.02); border-radius: 15px; border: 1px dashed rgba(255,255,255,0.1);">
+                    <h5 class="text-white mb-4"><i class="bi bi-collection-play"></i> Origen del Video</h5>
+                    
+                    @* Opción 1: URL de YouTube *@
+                    <div class="mb-3">
+                        <label asp-for="VideoUrl" class="fw-bold mb-2 text-white-50 small" style="color: #00d2ff !important;">
+                            <i class="bi bi-youtube text-danger"></i> Opción 1: Enlace Embed de YouTube
+                        </label>
+                        <input asp-for="VideoUrl" id="txtVideoUrl" class="form-control-tech w-100" 
+                               placeholder="Ej: https://www.youtube.com/embed/TuCodigoDeVideo" />
+                        <small class="text-muted mt-1 d-block">Asegúrate de copiar el enlace de "Insertar" (embed) del video.</small>
+                    </div>
+
+                    <div class="text-center my-3 position-relative">
+                        <hr style="border-color: rgba(255,255,255,0.2);">
+                        <span class="position-absolute top-50 start-50 translate-middle px-3" style="background-color: #121216; color: #aaa; font-weight: bold;">Ó</span>
+                    </div>
+
+                    @* Opción 2: Archivo Local *@
+                    <div>
+                        <label class="fw-bold mb-2 text-white-50 small" style="color: var(--acento-create) !important;">
+                            <i class="bi bi-file-earmark-play-fill"></i> Opción 2: Subir Archivo Local
+                        </label>
+                        <input type="file" name="archivoVideo" id="fileVideo" class="form-control form-control-tech w-100" accept="video/mp4,video/webm" />
+                        <small class="text-muted mt-1 d-block">Formatos soportados: .mp4, .webm</small>
+                    </div>
+                </div>
+                @* --------------------------------------------------- *@
+
+                @* Descripción *@
+                <div class="col-md-12 mt-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label asp-for="Descripcion" class="fw-bold m-0 text-white-50 small">Descripción Detallada</label>
+                        <span id="wordCountDisplay" class="counter-text" style="color: #ff4a68;">0 / 100 caracteres aprox.</span>
+                    </div>
+                    <textarea asp-for="Descripcion" id="txtDescripcion" class="form-control-tech w-100" rows="5" 
+                              placeholder="Describe paso a paso tu tutorial..."></textarea>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mt-5 pt-4 border-top border-secondary">
+                <a asp-action="Index" class="btn btn-outline-light rounded-pill px-4">Cancelar</a>
+                <button type="submit" id="btnPublicar" class="btn btn-publish-neon" disabled>
+                    <i class="bi bi-lock-fill me-2"></i> Revisa los límites
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const txtTitulo = document.getElementById('txtTitulo');
+    const titleCountDisplay = document.getElementById('titleCountDisplay');
+    const txtDesc = document.getElementById('txtDescripcion');
+    const wordDisplay = document.getElementById('wordCountDisplay');
+    const btnPublicar = document.getElementById('btnPublicar');
+    
+    // Elementos de los videos
+    const txtVideoUrl = document.getElementById('txtVideoUrl');
+    const fileVideo = document.getElementById('fileVideo');
+
+    function bloquearNumeros(e) {
+        const char = String.fromCharCode(e.which);
+        if (/[0-9]/.test(char)) return false;
+    }
+
+    function validarFormulario() {
+        // Cálculo basado en longitud dividida por 5 para simular palabras
+        const titleWords = Math.floor(txtTitulo.value.length / 5);
+        const descWords = Math.floor(txtDesc.value.length / 5);
+        const hasNumbers = /[0-9]/.test(txtTitulo.value);
+
+        // Validación de medios (URL o Archivo)
+        const hasMedia = txtVideoUrl.value.trim() !== '' || fileVideo.files.length > 0;
+
+        // --- Validación Título ---
+        titleCountDisplay.innerText = `${titleWords} / 30 aprox`;
+        // Límites: de 20 a 30 "palabras"
+        const titleOk = titleWords >= 20 && titleWords <= 30 && !hasNumbers;
+        titleCountDisplay.style.color = titleOk ? "#00ff88" : "#ff4a68";
+        txtTitulo.style.borderColor = (hasNumbers || (txtTitulo.value.length > 0 && !titleOk)) ? "#ff4a68" : "";
+
+        // --- Validación Descripción ---
+        wordDisplay.innerText = `${descWords} / 100 aprox`;
+        // Límites: de 20 a 100 "palabras"
+        const descOk = descWords >= 20 && descWords <= 100;
+        wordDisplay.style.color = descOk ? "#00ff88" : "#ff4a68";
+
+        // --- Estado del Botón de Publicación ---
+        if (titleOk && descOk && hasMedia) {
+            btnPublicar.disabled = false;
+            btnPublicar.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i> Subir Video';
+        } else {
+            btnPublicar.disabled = true;
+            btnPublicar.innerHTML = '<i class="bi bi-lock-fill me-2"></i> Faltan datos o video';
+        }
+    }
+
+    // Escuchar cambios en todos los campos
+    txtTitulo.addEventListener('input', validarFormulario);
+    txtDesc.addEventListener('input', validarFormulario);
+    txtVideoUrl.addEventListener('input', validarFormulario);
+    fileVideo.addEventListener('change', validarFormulario);
+</script>
+
+</body>
+</html>

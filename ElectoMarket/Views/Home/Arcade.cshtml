@@ -1,0 +1,107 @@
+﻿@using Microsoft.AspNetCore.Http
+@{
+    Layout = null;
+    bool esInvitado = Context.Session.GetInt32("UsuarioId") == null;
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <title>Arcade - ElectroMarket</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body { background-color: #08080a; color: white; font-family: 'Inter', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
+        .tech-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background-image: radial-gradient(circle at 50% 50%, rgba(124, 77, 255, 0.1) 0%, transparent 60%); }
+        .game-card { background: rgba(18, 18, 22, 0.85); border: 1px solid rgba(0, 210, 255, 0.3); border-radius: 15px; padding: 20px; text-align: center; transition: 0.3s; text-decoration: none; color: white; display: block; height: 100%; }
+        .game-card:hover { transform: translateY(-10px); border-color: #00d2ff; box-shadow: 0 10px 20px rgba(0, 210, 255, 0.2); color: white; }
+        .icon-glow { font-size: 3rem; text-shadow: 0 0 15px currentColor; margin-bottom: 10px; }
+        .btn-tech { background: transparent; color: #7c4dff; border: 1px solid #7c4dff; padding: 8px 20px; border-radius: 8px; font-weight: bold; transition: 0.3s; text-decoration: none; margin-top: 30px; }
+        .btn-tech:hover { background: #7c4dff; color: white; box-shadow: 0 0 15px rgba(124, 77, 255, 0.4); }
+    </style>
+</head>
+<body>
+    <div class="tech-bg"></div>
+    <div class="container text-center" style="max-width: 900px; position: relative; z-index: 1;">
+        <h1 class="fw-bold mb-2"><i class="bi bi-joystick" style="color: #00d2ff; text-shadow: 0 0 15px #00d2ff;"></i> Electro Arcade</h1>
+        <p class="text-white-50 mb-5">Sistemas de simulación y entrenamiento de reflejos.</p>
+
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <a asp-action="Minijuego" class="game-card">
+                    <i class="bi bi-bezier2 icon-glow" style="color: #00ff88;"></i>
+                    <h5 class="fw-bold">Electro Snake</h5>
+                    <p class="small text-white-50 m-0">Nivel Extremo</p>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <a asp-action="CyberPong" class="game-card">
+                    <i class="bi bi-usb-c icon-glow" style="color: #ff00ff;"></i>
+                    <h5 class="fw-bold">Cyber Pong</h5>
+                    <p class="small text-white-50 m-0">IA Adaptativa</p>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <a asp-action="NeonRunner" class="game-card">
+                    <i class="bi bi-activity icon-glow" style="color: #00d2ff;"></i>
+                    <h5 class="fw-bold">Neon Runner</h5>
+                    <p class="small text-white-50 m-0">Velocidad Máxima</p>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <a asp-action="GlitchShooter" class="game-card">
+                    <i class="bi bi-crosshair icon-glow" style="color: #ff2a55;"></i>
+                    <h5 class="fw-bold">Glitch Shooter</h5>
+                    <p class="small text-white-50 m-0">Lluvia de Virus</p>
+                </a>
+            </div>
+        </div>
+        <a asp-controller="Home" asp-action="Index" class="btn-tech d-inline-block"><i class="bi bi-arrow-left"></i> Salir del Arcade</a>
+    </div>
+
+    @if(esInvitado) {
+        <div style="position: fixed; top: 20px; right: 20px; background: rgba(255, 74, 104, 0.1); border: 1px solid #ff4a68; color: #ff4a68; padding: 8px 15px; border-radius: 50px; font-weight: bold; font-family: monospace; z-index: 9999; box-shadow: 0 0 10px rgba(255,74,104,0.3); backdrop-filter: blur(5px);">
+            ⏱️ Prueba: <span id="timeRemaining">15:00</span>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            let timeRemaining = localStorage.getItem('arcadeTimeLeft');
+            if (timeRemaining === null) { timeRemaining = 15 * 60; } 
+            else { timeRemaining = parseInt(timeRemaining); }
+
+            let timerInterval = setInterval(updateTimer, 1000); 
+
+            function updateTimer() {
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    document.getElementById('timeRemaining').innerText = "00:00";
+                    if (typeof gameOver !== 'undefined') gameOver = true; 
+                    
+                    Swal.fire({
+                        title: '<span style="color: #ff4a68; font-weight: 900; font-size: 2rem;">¡TIEMPO AGOTADO!</span>',
+                        html: '<span style="color: #ccc; font-size: 1.1rem;">Tu pase de prueba de 15 minutos ha terminado.<br><br><b style="color: white;">¡Regístrate GRATIS para jugar sin límites!</b><br><br><small style="color: #ff4a68;">Saliendo de la simulación en 30 segundos...</small></span>',
+                        icon: 'warning', background: '#161618', color: '#fff',
+                        allowOutsideClick: false, allowEscapeKey: false, showCancelButton: true,
+                        confirmButtonColor: '#7c4dff', cancelButtonColor: '#2d2d30',
+                        confirmButtonText: '¡Registrarme Ahora!', cancelButtonText: 'Volver a la Tienda',
+                        backdrop: `rgba(255, 74, 104, 0.2)`, timer: 30000, timerProgressBar: true
+                    }).then((result) => {
+                        if (result.isConfirmed) { window.location.href = '/Usuarios/Register'; } 
+                        else { window.location.href = '/Home/Index'; }
+                    });
+                    return;
+                }
+                let m = Math.floor(timeRemaining / 60); let s = timeRemaining % 60;
+                document.getElementById('timeRemaining').innerText = (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s;
+                timeRemaining--; localStorage.setItem('arcadeTimeLeft', timeRemaining);
+            }
+            updateTimer();
+        </script>
+    } else {
+        <div style="position: fixed; top: 20px; right: 20px; background: rgba(0, 255, 136, 0.1); border: 1px solid #00ff88; color: #00ff88; padding: 8px 15px; border-radius: 50px; font-weight: bold; font-family: monospace; z-index: 9999; box-shadow: 0 0 10px rgba(0,255,136,0.3); backdrop-filter: blur(5px);">
+            👑 PASE VIP: Ilimitado
+        </div>
+        <script>localStorage.removeItem('arcadeTimeLeft'); localStorage.removeItem('arcadeStartTime');</script>
+    }
+</body>
+</html>

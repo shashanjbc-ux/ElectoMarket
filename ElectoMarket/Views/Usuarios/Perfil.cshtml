@@ -1,0 +1,297 @@
+﻿@model ElectoMarket.Models.Usuario
+@using ElectoMarket.Data
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext _context
+
+@{
+    Layout = null; // Diseño independiente premium
+    
+    //  LÓGICA DE ESTADÍSTICAS REALES
+    var misProductos = ViewBag.MisProductos as List<ElectoMarket.Models.Producto> ?? new List<ElectoMarket.Models.Producto>();
+    var totalPublicados = misProductos.Count;
+    // Ahora los equipos activos son los que tienen cantidad > 0 Y que NO están marcados como vendidos
+    var equiposActivos = misProductos.Count(p => p.Cantidad > 0 && !p.Vendido);
+    var stockTotal = misProductos.Sum(p => p.Cantidad);
+
+    // Datos de sesión
+    var uId = Context.Session.GetInt32("UsuarioId");
+    var uNombre = Context.Session.GetString("UsuarioNombre") ?? "Usuario";
+    var uFoto = Context.Session.GetString("UsuarioFoto");
+
+    //  LÓGICA: CONTADOR DE MENSAJES DINÁMICO
+    int mensajesSinLeerPerfil = 0;
+    if (uId != null)
+    {
+        mensajesSinLeerPerfil = _context.Mensajes
+            .Include(m => m.Chat)
+            .Count(m => !m.Leido && m.RemitenteId != uId && (m.Chat.Usuario1Id == uId || m.Chat.Usuario2Id == uId));
+    }
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mi Perfil - ElectroMarket</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-dark: #08080a;
+            --glass-bg: rgba(18, 18, 22, 0.85);
+            --border-glass: rgba(255, 255, 255, 0.1);
+            --morado-neon: #7c4dff;
+            --cyan-neon: #00d2ff;
+            --verde-neon: #00ff88;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: white;
+            font-family: 'Inter', system-ui, sans-serif;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .tech-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+            background-image: radial-gradient(circle at 10% 20%, rgba(124, 77, 255, 0.12) 0%, transparent 40%),
+                              radial-gradient(circle at 90% 80%, rgba(0, 210, 255, 0.1) 0%, transparent 40%);
+        }
+
+        .navbar-custom { background: rgba(10, 10, 12, 0.9); backdrop-filter: blur(15px); border-bottom: 1px solid var(--border-glass); padding: 12px 0; }
+        .glass-card { background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid var(--border-glass); border-radius: 24px; padding: 35px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); height: 100%; }
+        .profile-pic { width: 140px; height: 140px; object-fit: cover; border-radius: 50%; border: 3px solid var(--morado-neon); padding: 5px; box-shadow: 0 0 25px rgba(124, 77, 255, 0.4); margin-bottom: 20px; }
+        
+        .chat-icon-btn { position: relative; color: white; font-size: 1.2rem; transition: 0.3s; text-decoration: none; }
+        .nav-link-tech { color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.85rem; font-weight: 500; transition: 0.3s; display: flex; align-items: center; }
+        .nav-link-tech:hover { color: var(--cyan-neon); text-shadow: 0 0 10px var(--cyan-neon); }
+
+        .btn-action-custom { display: block; width: 100%; padding: 12px; border-radius: 14px; font-weight: 700; font-size: 0.9rem; text-decoration: none; text-align: center; margin-bottom: 12px; transition: 0.3s; border: 1px solid var(--border-glass); background: rgba(255,255,255,0.03); color: white; }
+        .btn-publish { border-color: var(--verde-neon); color: var(--verde-neon); }
+        .btn-publish:hover { background: var(--verde-neon); color: black; box-shadow: 0 0 20px var(--verde-neon); }
+
+        .equipment-item { background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass); border-radius: 20px; padding: 18px; margin-bottom: 15px; transition: 0.3s; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;}
+        .equipment-pic { width: 60px; height: 60px; object-fit: cover; border-radius: 12px; margin-right: 15px; border: 1px solid var(--border-glass); }
+        .stat-box { background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 15px; padding: 12px; text-align: center; }
+        
+        /* Clase para opacar visualmente los productos vendidos */
+        .producto-vendido .info-producto { opacity: 0.5; filter: grayscale(50%); transition: 0.3s; }
+        .producto-vendido:hover .info-producto { opacity: 0.8; filter: grayscale(0%); }
+
+        /*  Estilos para la barra de búsqueda */
+        .form-control-tech {
+            background-color: rgba(0,0,0,0.3) !important;
+            border: 1px solid var(--border-glass) !important;
+            color: white !important;
+            border-radius: 12px;
+            padding: 12px 12px 12px 40px; /* Espacio extra a la izq para el ícono */
+            transition: 0.3s;
+        }
+        .form-control-tech:focus {
+            border-color: var(--cyan-neon) !important;
+            box-shadow: 0 0 15px rgba(0, 210, 255, 0.3) !important;
+        }
+        .form-control-tech::placeholder {
+            color: rgba(255,255,255,0.4);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="tech-bg"></div>
+
+    <nav class="navbar-custom">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <a asp-controller="Home" asp-action="Index" class="d-flex align-items-center text-decoration-none">
+                    <img src="/imagenes/Logo/Logo.jpg" alt="Logo" style="height: 40px; width: 40px; border-radius: 50%;">
+                    <span class="text-white fw-bold fs-5 ms-2">ElectroMarket</span>
+                </a>
+                <div class="ms-5 d-flex gap-4">
+                    <a asp-controller="Productos" asp-action="Index" class="nav-link-tech"><i class="bi bi-shop me-1"></i> Catálogo</a>
+                    @if (Model.RolId == 1) { 
+                        <a asp-controller="Usuarios" asp-action="ListadoUsuarios" class="nav-link-tech"><i class="bi bi-people me-1"></i> Gestión Usuarios</a>
+                        <a asp-controller="Productos" asp-action="Gestionar" class="nav-link-tech"><i class="bi bi-box-seam me-1"></i> Gestión Productos</a>
+                    }
+                </div>
+            </div>
+            
+            <div class="d-flex align-items-center gap-4">
+                <a asp-controller="Chats" asp-action="Index" class="chat-icon-btn position-relative me-2" title="Mensajes">
+                    <i class="bi bi-chat-dots text-white fs-5"></i>
+                    @if (mensajesSinLeerPerfil > 0) {
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem; padding: 0.35em 0.65em; transform: translate(-20%, -10%) !important;">
+                            @(mensajesSinLeerPerfil > 99 ? "99+" : mensajesSinLeerPerfil.ToString())
+                        </span>
+                    }
+                </a>
+
+                <a asp-controller="Usuarios" asp-action="Perfil" class="d-flex align-items-center text-decoration-none">
+                    <img src="@(!string.IsNullOrEmpty(Model.FotoPerfilUrl) ? Model.FotoPerfilUrl : "/imagenes/placeholder-perfil.png")" class="rounded-circle border border-secondary me-2" style="width: 35px; height: 35px; object-fit: cover;">
+                    <span class="text-white fw-bold">@uNombre</span>
+                </a>
+                <form asp-controller="Usuarios" asp-action="Logout" method="post" class="m-0 ms-2">
+                    <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">Salir</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="glass-card text-center">
+                    <img src="@(string.IsNullOrEmpty(Model.FotoPerfilUrl) ? "/imagenes/placeholder-perfil.png" : Model.FotoPerfilUrl)" class="profile-pic" alt="Perfil">
+                    <h3 class="fw-bold m-0 text-white">@Model.Nombre</h3>
+                    <p class="text-white-50 small mb-4">@Model.Correo</p>
+
+                    <div class="row g-2 mb-4">
+                        <div class="col-4"><div class="stat-box"><span class="text-primary fw-bold">@totalPublicados</span><small class="text-white-50 d-block" style="font-size:0.7rem;">Pubs</small></div></div>
+                        <div class="col-4"><div class="stat-box"><span class="text-success fw-bold">@equiposActivos</span><small class="text-white-50 d-block" style="font-size:0.7rem;">Activos</small></div></div>
+                        <div class="col-4"><div class="stat-box"><span style="color:var(--morado-neon); font-weight:bold;">@stockTotal</span><small class="text-white-50 d-block" style="font-size:0.7rem;">Stock</small></div></div>
+                    </div>
+
+                    <div class="mt-4">
+                        <a asp-controller="Productos" asp-action="Create" class="btn-action-custom btn-publish"><i class="bi bi-plus-circle"></i> Publicar Equipo</a>
+                        <a asp-controller="Usuarios" asp-action="EditPerfil" class="btn-action-custom" style="border-color: var(--morado-neon); color: var(--morado-neon);"><i class="bi bi-gear"></i> Editar Perfil</a>
+                        <a asp-action="VerPerfil" asp-route-id="@Model.IdUsuario" class="btn-action-custom" style="border-color: var(--cyan-neon); color: var(--cyan-neon);"><i class="bi bi-eye"></i> Perfil Público</a>
+                    </div>
+
+                    @* 🔴 BOTÓN QUE ACTIVA EL MODAL 🔴 *@
+                    @if (Model.RolId != 1)
+                    {
+                        <button type="button" class="btn btn-outline-danger w-100 py-2 rounded-3 fw-bold mt-4 shadow-sm" 
+                                data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+                            <i class="bi bi-trash3-fill me-2"></i> Eliminar mi Cuenta
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <div class="glass-card">
+                    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                        <h4 class="fw-bold m-0"><i class="bi bi-cpu text-cyan-neon me-2"></i>Mis Equipos Publicados</h4>
+                        
+                        @* 🔍 BARRA DE BÚSQUEDA INSTANTÁNEA *@
+                        <div class="position-relative" style="min-width: 250px; flex-grow: 1; max-width: 350px;">
+                            <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3" style="color: var(--cyan-neon);"></i>
+                            <input type="text" id="buscadorEquipos" class="form-control form-control-tech w-100" placeholder="Buscar por nombre...">
+                        </div>
+                    </div>
+
+                    <div class="equipment-list">
+                        @foreach (var prod in misProductos) {
+                            @* Agregamos clase para oscurecer si está vendido *@
+                            <div class="equipment-item shadow-sm @(prod.Vendido ? "producto-vendido" : "")">
+                                
+                                @* Información visual del producto (foto, nombre, precio) *@
+                                <div class="d-flex align-items-center info-producto flex-grow-1">
+                                    <img src="@(string.IsNullOrEmpty(prod.ImagenUrl) ? "/imagenes/no-image.png" : prod.ImagenUrl)" class="equipment-pic">
+                                    <div>
+                                        <h6 class="fw-bold m-0 text-white nombre-producto-filtro">@prod.Nombre</h6>
+                                        <span class="text-success fw-bold">@prod.Precio.ToString("C0")</span>
+                                    </div>
+                                </div>
+                                
+                                @* Botones de Acción *@
+                                <div class="actions d-flex align-items-center gap-2">
+                                    
+                                    @* 🔄 BOTÓN DE VENDIDO / DISPONIBLE *@
+                                    <form asp-controller="Productos" asp-action="ToggleVendido" asp-route-id="@prod.IdProducto" method="post" class="d-inline m-0 p-0 me-2">
+                                        @Html.AntiForgeryToken()
+                                        @if (prod.Vendido)
+                                        {
+                                            <button type="submit" class="btn btn-sm px-3 rounded-pill" style="color: #ff4a68; border: 1px solid #ff4a68; background: rgba(255, 74, 104, 0.1);" title="Volver a publicar">
+                                                <i class="bi bi-x-circle-fill me-1"></i> Vendido
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="submit" class="btn btn-sm px-3 rounded-pill" style="color: #00ff88; border: 1px solid #00ff88; background: rgba(0, 255, 136, 0.1);" title="Marcar como vendido">
+                                                <i class="bi bi-check-circle-fill me-1"></i> Marcar Vendido
+                                            </button>
+                                        }
+                                    </form>
+
+                                    @* Editar y Eliminar *@
+                                    <a asp-controller="Productos" asp-action="Edit" asp-route-id="@prod.IdProducto" class="btn btn-sm btn-outline-warning rounded-circle"><i class="bi bi-pencil"></i></a>
+                                    <a asp-controller="Productos" asp-action="Delete" asp-route-id="@prod.IdProducto" class="btn btn-sm btn-outline-danger rounded-circle"><i class="bi bi-trash"></i></a>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    
+                    @* Mensaje por si la búsqueda no encuentra nada *@
+                    <div id="mensajeSinResultados" class="text-center py-4 d-none">
+                        <i class="bi bi-search text-muted" style="font-size: 2rem;"></i>
+                        <p class="text-muted mt-2">No se encontraron equipos con ese nombre.</p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* 🟢 EL MODAL DE ELIMINAR CUENTA 🟢 *@
+    <div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-center" style="background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid rgba(255, 85, 85, 0.4); border-radius: 24px;">
+                <div class="modal-header border-0 pb-0 justify-content-end">
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body px-5 pb-4">
+                    <i class="bi bi-exclamation-triangle-fill text-danger mb-3 d-block" style="font-size: 4rem;"></i>
+                    <h4 class="text-white fw-bold mb-3">¿Eliminar tu cuenta?</h4>
+                    <p class="text-white-50 mb-4" style="font-size: 0.95rem;">
+                        Borrarás tu perfil, chats y equipos publicados. <br>
+                        <span class="text-danger fw-bold">¡Esta acción es irreversible!</span>
+                    </p>
+                    <div class="d-flex justify-content-center gap-3">
+                        <button type="button" class="btn btn-outline-light rounded-pill px-4 py-2" data-bs-dismiss="modal">Cancelar</button>
+                        <form asp-controller="Usuarios" asp-action="EliminarMiPerfil" method="post" class="m-0">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-danger rounded-pill px-4 py-2 fw-bold">Sí, eliminar todo</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    @* 🚀 SCRIPT PARA BÚSQUEDA INSTANTÁNEA *@
+    <script>
+        document.getElementById('buscadorEquipos').addEventListener('input', function() {
+            const textoBusqueda = this.value.toLowerCase().trim();
+            const equipos = document.querySelectorAll('.equipment-item');
+            const mensajeSinResultados = document.getElementById('mensajeSinResultados');
+            let hayResultados = false;
+
+            equipos.forEach(function(equipo) {
+                // Buscamos el texto dentro del h6 con la clase .nombre-producto-filtro
+                const nombreProducto = equipo.querySelector('.nombre-producto-filtro').textContent.toLowerCase();
+                
+                if (nombreProducto.includes(textoBusqueda)) {
+                    equipo.style.setProperty('display', 'flex', 'important'); // Lo mostramos
+                    hayResultados = true;
+                } else {
+                    equipo.style.setProperty('display', 'none', 'important'); // Lo ocultamos
+                }
+            });
+
+            // Mostrar/Ocultar el mensaje de "No se encontraron equipos"
+            if (hayResultados || equipos.length === 0) {
+                mensajeSinResultados.classList.add('d-none');
+            } else {
+                mensajeSinResultados.classList.remove('d-none');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,217 @@
+﻿@model ElectoMarket.Models.Guia
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Actualizar Guía - ElectroMarket</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #08080a;
+            --bg-card: #111114;
+            --cyan-neon: #00d2ff;
+            --purple-neon: #7c4dff;
+            --border-tech: rgba(255, 255, 255, 0.1);
+        }
+
+        body { 
+            background-color: var(--bg-dark); 
+            color: white; 
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px 0;
+        }
+
+        .edit-container {
+            background: var(--bg-card);
+            border: 1px solid var(--cyan-neon);
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 650px;
+            box-shadow: 0 0 30px rgba(0, 210, 255, 0.15);
+        }
+
+        .form-control-tech {
+            background-color: rgba(0,0,0,0.3) !important;
+            border: 1px solid var(--border-tech) !important;
+            color: white !important;
+            border-radius: 12px;
+            padding: 12px;
+            transition: 0.3s;
+        }
+
+        .form-control-tech:focus {
+            border-color: var(--purple-neon) !important;
+            box-shadow: 0 0 15px rgba(124, 77, 255, 0.3) !important;
+        }
+
+        .btn-update-neon {
+            background: linear-gradient(90deg, var(--cyan-neon), var(--purple-neon));
+            border: none;
+            color: white;
+            font-weight: 800;
+            border-radius: 50px;
+            padding: 12px 30px;
+            transition: 0.3s;
+            text-transform: uppercase;
+        }
+
+        .btn-update-neon:hover:not(:disabled) {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px var(--cyan-neon);
+        }
+
+        .btn-update-neon:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            filter: grayscale(1);
+        }
+
+        .header-icon {
+            font-size: 3rem;
+            color: var(--purple-neon);
+            text-shadow: 0 0 15px var(--purple-neon);
+            margin-bottom: 10px;
+        }
+
+        .counter-text { font-size: 0.8rem; font-weight: bold; transition: 0.3s; }
+        .info-box { background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px dashed rgba(255,255,255,0.1); }
+    </style>
+</head>
+<body>
+
+    <div class="edit-container">
+        <div class="text-center mb-4">
+            <div class="header-icon"><i class="bi bi-pencil-square"></i></div>
+            <h2 class="fw-bold">Actualizar <span style="color: var(--cyan-neon);">Guía</span></h2>
+            <p class="text-white-50 small">Mantén tus tutoriales al día con los mejores estándares.</p>
+        </div>
+
+        <form asp-action="Edit" enctype="multipart/form-data" id="formUpdate">
+            @* CAMPOS OCULTOS *@
+            <input type="hidden" asp-for="IdGuia" />
+            <input type="hidden" asp-for="IdUsuario" />
+            <input type="hidden" asp-for="FechaPublicacion" />
+            <input type="hidden" asp-for="Vistas" />
+
+            <div class="row g-3">
+                @* Título *@
+                <div class="col-md-12">
+                    <div class="d-flex justify-content-between mb-1">
+                        <label class="small fw-bold text-white-50">Título (Sin números)</label>
+                        <span id="titleCountDisplay" class="counter-text" style="color: #ff4a68;">0 / 30 aprox.</span>
+                    </div>
+                    <input asp-for="Titulo" id="txtTitulo" class="form-control-tech w-100" 
+                           maxlength="150" onkeypress="return bloquearNumeros(event)" required />
+                    <span asp-validation-for="Titulo" class="text-danger small"></span>
+                </div>
+
+                @* Origen del Video *@
+                <div class="col-md-12 p-3 info-box">
+                    <label class="small fw-bold text-white-50 mb-2">Origen del Video</label>
+                    
+                    <input asp-for="VideoUrl" id="txtVideoUrl" class="form-control-tech w-100 mb-2" 
+                           placeholder="Enlace Embed de YouTube" />
+                    
+                    <div class="text-center small text-white-50 my-1">O subir archivo nuevo</div>
+                    
+                    <input type="file" name="archivoVideo" id="fileVideo" class="form-control form-control-tech w-100" accept="video/*" />
+                    <p class="text-white-50 x-small mt-2 mb-0">
+                        <i class="bi bi-info-circle"></i> Deja vacío el archivo si no deseas cambiar el video actual.
+                    </p>
+                </div>
+
+                @* Descripción *@
+                <div class="col-md-12">
+                    <div class="d-flex justify-content-between mb-1">
+                        <label class="small fw-bold text-white-50">Descripción Detallada</label>
+                        <span id="wordCountDisplay" class="counter-text" style="color: #ff4a68;">0 / 100 aprox.</span>
+                    </div>
+                    <textarea asp-for="Descripcion" id="txtDescripcion" class="form-control-tech w-100" rows="4"></textarea>
+                    <span asp-validation-for="Descripcion" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2 mt-4">
+                <button type="submit" id="btnGuardar" class="btn btn-update-neon" disabled>
+                    <i class="bi bi-lock-fill me-2"></i> Límites requeridos
+                </button>
+                <a asp-action="Index" class="btn btn-link text-white-50 text-decoration-none small text-center mt-2">
+                    <i class="bi bi-arrow-left"></i> Volver al Catálogo
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const txtTitulo = document.getElementById('txtTitulo');
+        const titleCountDisplay = document.getElementById('titleCountDisplay');
+        const txtDesc = document.getElementById('txtDescripcion');
+        const wordDisplay = document.getElementById('wordCountDisplay');
+        const btnGuardar = document.getElementById('btnGuardar');
+        const txtVideoUrl = document.getElementById('txtVideoUrl');
+        const fileVideo = document.getElementById('fileVideo');
+
+        function bloquearNumeros(e) {
+            const char = String.fromCharCode(e.which);
+            if (/[0-9]/.test(char)) return false;
+        }
+
+        function validarFormulario() {
+            // Lógica idéntica a Create: longitud / 5 para simular palabras
+            const titleWords = Math.floor(txtTitulo.value.length / 5);
+            const descWords = Math.floor(txtDesc.value.length / 5);
+            const hasNumbers = /[0-9]/.test(txtTitulo.value);
+
+            // Verificamos si existe contenido multimedia (link existente o archivo nuevo)
+            const hasMedia = txtVideoUrl.value.trim() !== '' || fileVideo.files.length > 0;
+
+            // Validación Título (20 a 30 "palabras")
+            titleCountDisplay.innerText = `${titleWords} / 30 aprox`;
+            const titleOk = titleWords >= 20 && titleWords <= 30 && !hasNumbers;
+            titleCountDisplay.style.color = titleOk ? "#00ff88" : "#ff4a68";
+            txtTitulo.style.borderColor = (hasNumbers || (txtTitulo.value.length > 0 && !titleOk)) ? "#ff4a68" : "";
+
+            // Validación Descripción (20 a 100 "palabras")
+            wordDisplay.innerText = `${descWords} / 100 aprox`;
+            const descOk = descWords >= 20 && descWords <= 100;
+            wordDisplay.style.color = descOk ? "#00ff88" : "#ff4a68";
+
+            // Estado del Botón
+            if (titleOk && descOk && hasMedia) {
+                btnGuardar.disabled = false;
+                btnGuardar.innerHTML = '<i class="bi bi-cloud-check-fill me-2"></i> Guardar Cambios';
+            } else {
+                btnGuardar.disabled = true;
+                btnGuardar.innerHTML = '<i class="bi bi-lock-fill me-2"></i> Límites requeridos';
+            }
+        }
+
+        // Listeners para validación en tiempo real
+        txtTitulo.addEventListener('input', validarFormulario);
+        txtDesc.addEventListener('input', validarFormulario);
+        txtVideoUrl.addEventListener('input', validarFormulario);
+        fileVideo.addEventListener('change', validarFormulario);
+
+        // Ejecutar validación al cargar para detectar datos previos de la DB
+        window.onload = validarFormulario;
+    </script>
+
+    @* Validación de lado del servidor activa *@
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.3/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.12/jquery.validate.unobtrusive.min.js"></script>
+</body>
+</html>

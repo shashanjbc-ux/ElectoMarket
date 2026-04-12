@@ -1,0 +1,202 @@
+﻿@model ElectoMarket.Models.Guia
+@using Microsoft.AspNetCore.Http
+
+@{
+    Layout = null; // Diseño independiente premium
+    
+    // Capturamos datos de sesión para la Navbar Inteligente
+    var uId = Context.Session.GetInt32("UsuarioId");
+    var uNombre = Context.Session.GetString("UsuarioNombre") ?? "Invitado";
+    var uFoto = Context.Session.GetString("UsuarioFoto");
+    
+    // Lógica para extraer el ID de YouTube de varios formatos de URL
+    string ExtraerYouTubeId(string url) {
+        if (string.IsNullOrEmpty(url)) return "";
+        if (url.Contains("v=")) return url.Split("v=")[1].Split('&')[0];
+        if (url.Contains("youtu.be/")) return url.Split("youtu.be/")[1].Split('?')[0];
+        return "";
+    }
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@Model.Titulo - ElectroMarket</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-dark: #08080a;
+            --card-bg: #111114;
+            --cyan-neon: #00d2ff;
+            --green-neon: #00ff88;
+            --morado-neon: #7c4dff;
+        }
+
+        body { 
+            background-color: var(--bg-dark); 
+            color: white; 
+            font-family: 'Inter', sans-serif; 
+            margin: 0; 
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* --- NAVBAR INTELIGENTE --- */
+        .navbar-custom { 
+            padding: 15px 50px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 1px solid rgba(255,255,255,0.05); 
+            background: rgba(0,0,0,0.6); 
+            backdrop-filter: blur(15px); 
+        }
+
+        .nav-profile-link { transition: 0.3s; padding: 5px 12px; border-radius: 20px; text-decoration: none !important; display: flex; align-items: center; gap: 10px; }
+        .nav-profile-link:hover { background: rgba(0, 210, 255, 0.1); }
+        .nav-avatar { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid var(--cyan-neon); box-shadow: 0 0 10px rgba(0, 210, 255, 0.3); }
+
+        .btn-reg { background: var(--green-neon); color: black; border-radius: 20px; padding: 7px 20px; font-weight: bold; text-decoration: none; font-size: 0.85rem; transition: 0.3s; border: none; }
+        .btn-reg:hover { box-shadow: 0 0 15px rgba(0, 255, 136, 0.5); transform: translateY(-2px); }
+        
+        .btn-ini { background: transparent; color: white; border: 1px solid var(--cyan-neon); border-radius: 20px; padding: 7px 20px; font-weight: bold; text-decoration: none; font-size: 0.85rem; transition: 0.3s; }
+        .btn-ini:hover { background: var(--cyan-neon); color: black; box-shadow: 0 0 15px rgba(0, 210, 255, 0.4); transform: translateY(-2px); }
+
+        .btn-salir { background: transparent; color: #ff4d4d; border: 1px solid #ff4d4d; border-radius: 20px; padding: 5px 15px; text-decoration: none; font-size: 0.8rem; transition: 0.3s; }
+        .btn-salir:hover { background: #ff4d4d; color: white; }
+
+        /* --- REPRODUCTOR --- */
+        .video-container { 
+            max-width: 1000px; 
+            margin: 40px auto; 
+            border: 2px solid var(--cyan-neon); 
+            border-radius: 24px; 
+            overflow: hidden; 
+            box-shadow: 0 0 40px rgba(0, 210, 255, 0.2); 
+            background: #000;
+            aspect-ratio: 16/9;
+        }
+
+        /* --- PANEL DE INFORMACIÓN --- */
+        .info-panel { 
+            max-width: 1000px; 
+            margin: 0 auto 60px; 
+            background: var(--card-bg); 
+            padding: 35px; 
+            border-radius: 24px; 
+            border: 1px solid rgba(255,255,255,0.05); 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .author-badge { 
+            background: rgba(124, 77, 255, 0.1); 
+            border: 1px solid var(--morado-neon); 
+            padding: 8px 18px; 
+            border-radius: 50px; 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 12px; 
+        }
+        
+        .vistas-badge { background: rgba(0, 210, 255, 0.1); color: var(--cyan-neon); border: 1px solid var(--cyan-neon); padding: 5px 15px; border-radius: 50px; font-weight: bold; font-size: 0.85rem; }
+
+        .break-text { word-wrap: break-word; word-break: break-word; overflow-wrap: anywhere; }
+    </style>
+</head>
+<body>
+
+    @* NAVBAR DINÁMICA *@
+    <nav class="navbar-custom sticky-top">
+        <a asp-controller="Home" asp-action="Index" class="text-decoration-none d-flex align-items-center text-white">
+            <img src="/imagenes/Logo/Logo.jpg" style="height: 35px; border-radius: 50%;" class="me-2">
+            <span class="fw-bold fs-5">ElectroMarket</span>
+        </a>
+
+        <div class="d-flex align-items-center gap-3">
+            @if (uId != null)
+            {
+                <a asp-controller="Usuarios" asp-action="Perfil" class="nav-profile-link">
+                    <div class="text-end lh-1">
+                        <div class="text-white fw-bold small">@uNombre</div>
+                        <div class="text-white-50" style="font-size: 0.65rem; text-transform: uppercase;">Mi Perfil</div>
+                    </div>
+                    <img src="@(!string.IsNullOrEmpty(uFoto) ? uFoto : "/imagenes/placeholder-perfil.png")" class="nav-avatar">
+                </a>
+                <form asp-controller="Usuarios" asp-action="Logout" method="post" class="m-0">
+                    <button type="submit" class="btn-salir">Salir</button>
+                </form>
+            }
+            else
+            {
+                <a asp-controller="Usuarios" asp-action="Login" class="btn-ini">INICIAR SESIÓN</a>
+                <a asp-controller="Usuarios" asp-action="Register" class="btn-reg">REGISTRARSE</a>
+            }
+        </div>
+    </nav>
+
+    <div class="container">
+        @* SECCIÓN DE VIDEO: Detección inteligente de origen *@
+        <div class="video-container shadow-lg">
+            @{ var ytId = ExtraerYouTubeId(Model.VideoUrl); }
+            
+            @if (!string.IsNullOrEmpty(ytId)) 
+            {
+                <iframe width="100%" height="100%" 
+                        src="https://www.youtube.com/embed/@ytId?autoplay=1&rel=0&modestbranding=1" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen>
+                </iframe>
+            } 
+            else 
+            {
+                <video width="100%" height="100%" controls autoplay class="rounded-4">
+                    <source src="@Model.VideoUrl" type="video/mp4">
+                    Tu navegador no soporta la reproducción de videos locales.
+                </video>
+            }
+        </div>
+
+        @* DETALLES DE LA GUÍA *@
+        <div class="info-panel">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+                <div style="flex: 1; min-width: 300px;">
+                    <h1 class="fw-bold break-text mb-3">@Model.Titulo</h1>
+                    <div class="vistas-badge">
+                        <i class="bi bi-eye-fill me-2"></i>@Model.Vistas Visualizaciones
+                    </div>
+                </div>
+                
+                <div class="author-badge shadow-sm">
+                    <img src="@(!string.IsNullOrEmpty(Model.Usuario?.FotoPerfilUrl) ? Model.Usuario.FotoPerfilUrl : "/imagenes/placeholder-perfil.png")" 
+                         style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 1px solid var(--morado-neon);">
+                    <div class="lh-1">
+                        <span class="text-white-50 d-block" style="font-size: 0.7rem; text-transform: uppercase;">Autor</span>
+                        <b class="text-white">@(Model.Usuario?.Nombre ?? "Admin")</b>
+                    </div>
+                </div>
+            </div>
+
+            <hr style="border-color: rgba(255,255,255,0.1); margin: 25px 0;">
+
+            <div class="description-section">
+                <h5 class="text-cyan-neon fw-bold mb-3"><i class="bi bi-info-circle me-2"></i>Descripción del Tutorial</h5>
+                <p class="break-text" style="white-space: pre-wrap; line-height: 1.8; color: #d1d1d1; font-size: 1.05rem;">@Model.Descripcion</p>
+            </div>
+            
+            <div class="mt-5 pt-3 border-top border-secondary border-opacity-25 text-center text-md-start">
+                <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4 py-2 transition-all">
+                    <i class="bi bi-arrow-left me-2"></i> Volver a Tutoriales
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

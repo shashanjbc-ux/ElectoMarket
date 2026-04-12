@@ -1,0 +1,203 @@
+@model IEnumerable<ElectoMarket.Models.Producto>
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Tienda - ElectroMarket";
+
+    // 🚨 FUNCIÓN PARA CALCULAR EL TIEMPO TRANSCURRIDO 🚨
+    string ObtenerTiempoHace(DateTime fecha)
+    {
+        var span = DateTime.Now - fecha;
+        if (span.TotalMinutes < 1) return "Hace un momento";
+        if (span.TotalMinutes < 60) return $"Hace {Math.Floor(span.TotalMinutes)} min";
+        if (span.TotalHours < 24) return $"Hace {Math.Floor(span.TotalHours)} h";
+        if (span.TotalDays < 30) return $"Hace {Math.Floor(span.TotalDays)} d";
+        if (span.TotalDays < 365) return $"Hace {Math.Floor(span.TotalDays / 30)} meses";
+        return $"Hace {Math.Floor(span.TotalDays / 365)} años";
+    }
+}
+
+<style>
+    /* --- ESTILOS DE LA BARRA DE BÚSQUEDA AVANZADA --- */
+    .search-panel { background: #111114; border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; padding: 25px; margin-bottom: 30px; }
+    .filter-label { color: #fff; font-size: 0.85rem; font-weight: bold; margin-bottom: 8px; display: block; }
+    
+    .form-control-tech, .form-select-tech { 
+        background-color: rgba(255, 255, 255, 0.05) !important; 
+        color: white !important; 
+        border: 1px solid rgba(255, 255, 255, 0.1) !important; 
+        border-radius: 8px; 
+        padding: 10px 15px;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='white' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+        background-position: right 0.75rem center !important;
+        background-repeat: no-repeat !important;
+        background-size: 16px 12px !important;
+        appearance: none;
+    }
+
+    .form-control-tech:focus, .form-select-tech:focus { 
+        background-color: rgba(255, 255, 255, 0.1) !important; 
+        border-color: #00d2ff !important; 
+        box-shadow: 0 0 15px rgba(0, 210, 255, 0.2) !important; 
+        outline: none; 
+    }
+
+    .form-select-tech option { background-color: #111114 !important; color: white !important; }
+    .input-group-text-tech { background: transparent; border: 1px solid rgba(255,255,255,0.1); border-right: none; color: #00d2ff; }
+    
+    .btn-apply { background: #6f2dbd; color: white; font-weight: bold; border-radius: 8px; border: none; transition: 0.3s; width: 100%; height: 45px; }
+    .btn-apply:hover { background: #5a249a; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(111, 45, 189, 0.4); color: white; }
+    
+    .btn-reset { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 8px; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; transition: 0.3s; text-decoration: none; }
+    .btn-reset:hover { background: rgba(255,255,255,0.1); color: #ff4d4d; }
+
+    /* --- ESTILOS DE LAS TARJETAS DE PRODUCTO --- */
+    .product-card { background-color: #1c1c1f; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 15px; overflow: hidden; transition: 0.3s; height: 100%; position: relative; }
+    .product-card:hover { transform: translateY(-5px); border-color: #7c4dff; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    .price-tag { position: absolute; top: 15px; right: 15px; background-color: #7c4dff; color: white; padding: 4px 12px; border-radius: 8px; font-weight: 700; z-index: 10; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+    
+    /* Etiqueta de tiempo (Time Ago) */
+    .time-badge { font-size: 0.75rem; color: #00d2ff; display: flex; align-items: center; gap: 5px; margin-bottom: 10px; font-weight: 600; text-transform: uppercase; }
+
+    .btn-outline-cyan { border: 1px solid #00d2ff; color: #00d2ff; background: transparent; transition: 0.3s; }
+    .btn-outline-cyan:hover { background: #00d2ff; color: black; }
+    
+    .btn-morado { background-color: #7c4dff; color: white; border: none; transition: 0.3s; }
+    .btn-morado:hover { background-color: #6236ff; transform: scale(1.1); color: white; }
+</style>
+
+<div class="container mt-5">
+    
+    <div class="search-panel shadow-lg">
+        <h6 class="text-info fw-bold mb-4"><i class="bi bi-sliders2-vertical me-2"></i> Filtros de Búsqueda Avanzados</h6>
+        
+        <form asp-action="Index" method="get">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="filter-label">Buscar por nombre</label>
+                    <div class="input-group">
+                        <span class="input-group-text-tech"><i class="bi bi-search"></i></span>
+                        <input type="text" name="buscar" value="@ViewData["BuscarActual"]" class="form-control form-control-tech" placeholder="Ej: Laptop, PlayStation..." />
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="filter-label">Categoría</label>
+                    <div class="input-group">
+                        <span class="input-group-text-tech"><i class="bi bi-grid-fill"></i></span>
+                        <select name="categoria" class="form-select form-select-tech">
+                            <option value="">Todas las categorías</option>
+                            <option value="Smartphones" selected="@(ViewData["CatActual"]?.ToString() == "Smartphones")">Smartphones</option>
+                            <option value="Laptops y PCs" selected="@(ViewData["CatActual"]?.ToString() == "Laptops y PCs")">Laptops y PCs</option>
+                            <option value="Lavadoras" selected="@(ViewData["CatActual"]?.ToString() == "Lavadoras")">Lavadoras</option>
+                            <option value="Consolas de Videojuegos" selected="@(ViewData["CatActual"]?.ToString() == "Consolas de Videojuegos")">Consolas de Videojuegos</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="filter-label">Vendedor</label>
+                    <div class="input-group">
+                        <span class="input-group-text-tech"><i class="bi bi-person-badge"></i></span>
+                        <input type="text" name="vendedor" value="@ViewData["VendActual"]" class="form-control form-control-tech" placeholder="Nombre del vendedor..." />
+                    </div>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="filter-label">Precio Mín.</label>
+                    <div class="input-group">
+                        <span class="input-group-text-tech text-info">$</span>
+                        <input type="number" name="min" value="@ViewData["MinActual"]" class="form-control form-control-tech" placeholder="0" />
+                    </div>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="filter-label">Precio Máx.</label>
+                    <div class="input-group">
+                        <span class="input-group-text-tech text-info">$</span>
+                        <input type="number" name="max" value="@ViewData["MaxActual"]" class="form-control form-control-tech" placeholder="Sin límite" />
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="filter-label">Ordenar resultados por</label>
+                    <div class="input-group">
+                        <span class="input-group-text-tech"><i class="bi bi-sort-down"></i></span>
+                        <select name="orden" class="form-select form-select-tech">
+                            <option value="recientes" selected="@(ViewData["OrdenActual"]?.ToString() == "recientes")">Más recientes</option>
+                            <option value="precio_asc" selected="@(ViewData["OrdenActual"]?.ToString() == "precio_asc")">Precio: Menor a Mayor</option>
+                            <option value="precio_desc" selected="@(ViewData["OrdenActual"]?.ToString() == "precio_desc")">Precio: Mayor a Menor</option>
+                            <option value="antiguos" selected="@(ViewData["OrdenActual"]?.ToString() == "antiguos")">Más antiguos</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-3 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn btn-apply">
+                        <i class="bi bi-funnel-fill me-2"></i> Aplicar Filtros
+                    </button>
+                    <a asp-action="Index" class="btn btn-reset" title="Limpiar filtros">
+                        <i class="bi bi-arrow-counterclockwise fs-5"></i>
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
+        @if (!Model.Any()) {
+            <div class="col-12 text-center py-5">
+                <h4 class="text-white-50">No se encontraron productos con esos filtros.</h4>
+            </div>
+        }
+        
+        @foreach (var item in Model) {
+            <div class="col">
+                <div class="product-card shadow-lg">
+                    <div class="position-relative" style="height: 200px;">
+                        <img src="@(string.IsNullOrEmpty(item.ImagenUrl) ? "/imagenes/no-image.png" : item.ImagenUrl)" 
+                             class="w-100 h-100 object-fit-cover p-2" 
+                             style="border-radius: 20px;" 
+                             alt="@item.Nombre">
+                        <span class="price-tag">@item.Precio.ToString("C0")</span>
+                    </div>
+                    <div class="p-3">
+                        @* ETIQUETA DE TIEMPO TRANSCURRIDO *@
+                        <div class="time-badge">
+                            <i class="bi bi-clock-history"></i> @ObtenerTiempoHace(item.FechaPublicacion)
+                        </div>
+
+                        <h5 class="fw-bold text-white mb-1">@item.Nombre</h5>
+                        <p class="small text-white-50 text-truncate mb-3">@item.Descripcion</p>
+                        
+                        <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary">
+                            <a asp-action="Details" asp-route-id="@item.IdProducto" class="btn btn-sm btn-outline-cyan px-4 fw-bold">Detalles</a>
+                            
+                            <button type="button" onclick="confirmarComparacion(@item.IdProducto, '@item.Nombre')" class="btn btn-sm btn-morado px-3">
+                                <i class="bi bi-arrow-left-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function confirmarComparacion(id, nombre) {
+            Swal.fire({
+                title: '¡Añadido al Versus!',
+                text: nombre + ' ya está en el laboratorio.',
+                icon: 'success',
+                background: '#161618',
+                color: '#fff',
+                confirmButtonColor: '#7c4dff'
+            }).then(() => {
+                window.location.href = `/Productos/AgregarAComparacion?id=${id}`;
+            });
+        }
+    </script>
+}
